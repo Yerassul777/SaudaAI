@@ -1,8 +1,15 @@
-import { useState, useEffect } from "react";
-import { content } from "./content";
-import type { Lang } from "./content";
+import { useEffect } from "react";
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  Navigate,
+  Outlet,
+  useNavigate,
+} from "react-router-dom";
+import { AppProviders, useAuth, useLang } from "./context/AppContext";
 
-// Компоненты-секции лендинга (по порядку сверху вниз)
+// Секции лендинга (по порядку сверху вниз)
 import Navbar from "./components/Navbar";
 import Hero from "./components/Hero";
 import ProblemSection from "./components/ProblemSection";
@@ -13,56 +20,90 @@ import Audience from "./components/Audience";
 import FAQ from "./components/FAQ";
 import CTASection from "./components/CTASection";
 import Footer from "./components/Footer";
+
+// Экраны приложения
 import RegisterPage from "./components/RegisterPage";
+import LoginPage from "./components/LoginPage";
+import Dashboard from "./components/Dashboard";
+import CreateCardWizard from "./components/CreateCardWizard";
+import MyCards from "./components/MyCards";
 
 /*
-  App — "сердце" приложения. Здесь живут два главных состояния:
+  App — точка сборки: провайдеры (язык + сессия) и маршруты.
 
-  1. lang — выбранный язык ("ru" или "kz"). По нему берём тексты из словаря.
-  2. screen — какой экран показываем: "landing" (главная) или "register".
-     Роутер (react-router) не используем — для двух экранов достаточно useState.
+  Маршруты:
+    /            лендинг (открыт всем)
+    /register    регистрация: телефон + ПИН
+    /login       вход
+    /app         дашборд (только после входа)
+    /app/new     мастер создания карточки
+    /app/cards   сохранённые карточки
 */
 
-type Screen = "landing" | "register";
+/** Лендинг: та же страница, что и раньше, но кнопки ведут на маршруты. */
+function Landing() {
+  const { t, lang, setLang } = useLang();
+  const { user } = useAuth();
+  const navigate = useNavigate();
 
-export default function App() {
-  const [lang, setLang] = useState<Lang>("ru"); // по умолчанию русский
-  const [screen, setScreen] = useState<Screen>("landing");
-
-  // Тексты текущего языка. Передаём их во все компоненты через проп t.
-  const t = content[lang];
-
-  // При смене экрана прокручиваем страницу наверх,
-  // чтобы регистрация не открывалась "посередине".
   useEffect(() => {
     window.scrollTo(0, 0);
-  }, [screen]);
+  }, []);
 
-  // Экран регистрации — отдельная страница без шапки и футера
-  if (screen === "register") {
-    return <RegisterPage t={t} onBack={() => setScreen("landing")} />;
-  }
+  // Уже вошёл? Кнопка «Начать» ведёт сразу в приложение.
+  const goToApp = () => navigate(user ? "/app" : "/register");
 
-  // Главная страница: все 10 секций по порядку
   return (
     <>
-      <Navbar
-        t={t}
-        lang={lang}
-        onLangChange={setLang}
-        onRegister={() => setScreen("register")}
-      />
+      <Navbar t={t} lang={lang} onLangChange={setLang} onRegister={goToApp} />
       <main>
-        <Hero t={t} onRegister={() => setScreen("register")} />
+        <Hero t={t} onRegister={goToApp} />
         <ProblemSection t={t} />
         <HowItWorks t={t} />
         <Features t={t} />
         <BeforeAfter t={t} />
         <Audience t={t} />
         <FAQ t={t} />
-        <CTASection t={t} onRegister={() => setScreen("register")} />
+        <CTASection t={t} onRegister={goToApp} />
       </main>
       <Footer t={t} />
     </>
+  );
+}
+
+/** Защита приватных маршрутов: нет сессии — отправляем на вход. */
+function RequireAuth() {
+  const { user, loading } = useAuth();
+
+  // Пока Supabase поднимает сессию из localStorage, ничего не дёргаем
+  if (loading) {
+    return (
+      <main className="flex min-h-screen items-center justify-center">
+        <span className="h-10 w-10 animate-spin rounded-full border-4 border-terracotta border-t-transparent" />
+      </main>
+    );
+  }
+
+  if (!user) return <Navigate to="/login" replace />;
+  return <Outlet />;
+}
+
+export default function App() {
+  return (
+    <AppProviders>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<Landing />} />
+          <Route path="/register" element={<RegisterPage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route element={<RequireAuth />}>
+            <Route path="/app" element={<Dashboard />} />
+            <Route path="/app/new" element={<CreateCardWizard />} />
+            <Route path="/app/cards" element={<MyCards />} />
+          </Route>
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </BrowserRouter>
+    </AppProviders>
   );
 }

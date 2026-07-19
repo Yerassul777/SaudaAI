@@ -1,158 +1,80 @@
 import { useState } from "react";
-import { ArrowLeft, Check, Sparkles, PartyPopper } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { ArrowLeft, Check, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
-import type { Content } from "../content";
+import { useLang } from "../context/AppContext";
+import { normalizePhone, isValidPin, signUpWithPhonePin } from "../lib/auth";
+import Field from "./Field";
 
 /*
-  RegisterPage — отдельный экран регистрации.
+  RegisterPage — настоящая регистрация: имя, номер телефона и 4-значный ПИН.
 
-  Как устроена форма:
-  1. В состоянии (useState) храним, что ввёл пользователь.
-  2. При отправке проверяем каждое поле (это и есть "клиентская валидация").
-  3. Если есть ошибки — показываем их под полями.
-  4. Если всё хорошо — показываем экран "Спасибо!".
+  Почему ПИН, а не пароль: аудитория сервиса каждый день вводит ПИН банковской
+  карты, а пароли забывает. Ошиблись 5 раз — сервер заблокирует номер на
+  15 минут (см. Edge Function auth-phone-pin), поэтому короткий код безопасен
+  настолько, насколько нужно для MVP.
 
-  ВАЖНО: никакой отправки на сервер нет — по заданию это только макет.
+  После успешной регистрации функция сразу возвращает сессию,
+  и мы попадаем на дашборд без лишних шагов.
 */
+export default function RegisterPage() {
+  const { t } = useLang();
+  const navigate = useNavigate();
+  const r = t.register;
 
-type Props = {
-  t: Content;
-  onBack: () => void; // вернуться на главную страницу
-};
-
-/*
-  Field — одно поле формы: подпись + input + сообщение об ошибке.
-  Вынесено в отдельный компонент, чтобы не повторять одну и ту же разметку
-  три раза. Важно: объявляем его СНАРУЖИ RegisterPage — если объявить внутри,
-  React будет пересоздавать поле при каждой букве и оно "потеряет фокус".
-*/
-function Field(props: {
-  id: string;
-  label: string;
-  type: string;
-  placeholder: string;
-  value: string;
-  error: string;
-  onChange: (value: string) => void;
-}) {
-  return (
-    <div>
-      <label htmlFor={props.id} className="mb-1.5 block text-sm font-semibold">
-        {props.label}
-      </label>
-      <input
-        id={props.id}
-        type={props.type}
-        placeholder={props.placeholder}
-        value={props.value}
-        onChange={(e) => props.onChange(e.target.value)}
-        aria-invalid={props.error !== ""}
-        className={`w-full rounded-xl border-2 bg-white px-4 py-3 text-ink outline-none transition-colors placeholder:text-ink/30 focus:border-forest ${
-          props.error ? "border-terracotta" : "border-ink/10"
-        }`}
-      />
-      {/* Сообщение об ошибке (показываем, только если она есть) */}
-      {props.error && (
-        <p role="alert" className="mt-1.5 text-sm font-medium text-terracotta">
-          {props.error}
-        </p>
-      )}
-    </div>
-  );
-}
-
-export default function RegisterPage({ t, onBack }: Props) {
-  const r = t.register; // короткое имя, чтобы не писать t.register каждый раз
-
-  // Значения полей формы
   const [name, setName] = useState("");
-  const [contact, setContact] = useState("");
-  const [password, setPassword] = useState("");
+  const [phone, setPhone] = useState("");
+  const [pin, setPin] = useState("");
+  const [errors, setErrors] = useState({ name: "", phone: "", pin: "" });
+  const [serverError, setServerError] = useState("");
+  const [sending, setSending] = useState(false);
 
-  // Тексты ошибок для каждого поля ("" — ошибки нет)
-  const [errors, setErrors] = useState({ name: "", contact: "", password: "" });
+  function validate(): string | null {
+    const next = { name: "", phone: "", pin: "" };
+    if (name.trim() === "") next.name = r.errorRequired;
 
-  // Успешно ли отправлена форма
-  const [submitted, setSubmitted] = useState(false);
+    const normalized = normalizePhone(phone);
+    if (phone.trim() === "") next.phone = r.errorRequired;
+    else if (!normalized) next.phone = r.errorPhone;
 
-  // Проверка "это похоже на email?" — есть символы, @, точка в домене
-  function isEmail(value: string): boolean {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+    if (pin === "") next.pin = r.errorRequired;
+    else if (!isValidPin(pin)) next.pin = r.errorPin;
+
+    setErrors(next);
+    if (next.name || next.phone || next.pin) return null;
+    return normalized;
   }
 
-  // Проверка "это похоже на телефон?" — цифры, можно +, пробелы, скобки, дефисы
-  function isPhone(value: string): boolean {
-    const digits = value.replace(/\D/g, ""); // оставляем только цифры
-    return /^[+\d][\d\s()-]+$/.test(value) && digits.length >= 10;
-  }
-
-  // Главная функция проверки. Возвращает true, если всё заполнено верно.
-  function validate(): boolean {
-    const newErrors = { name: "", contact: "", password: "" };
-
-    if (name.trim() === "") {
-      newErrors.name = r.errorRequired;
-    }
-
-    if (contact.trim() === "") {
-      newErrors.contact = r.errorRequired;
-    } else if (!isEmail(contact.trim()) && !isPhone(contact.trim())) {
-      newErrors.contact = r.errorContact;
-    }
-
-    if (password === "") {
-      newErrors.password = r.errorRequired;
-    } else if (password.length < 6) {
-      newErrors.password = r.errorPassword;
-    }
-
-    setErrors(newErrors);
-    // Форма верна, если все три ошибки — пустые строки
-    return newErrors.name === "" && newErrors.contact === "" && newErrors.password === "";
-  }
-
-  // Обработчик отправки формы
-  function handleSubmit(event: React.FormEvent) {
-    // Отменяем стандартную перезагрузку страницы браузером
+  async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
-    if (validate()) {
-      setSubmitted(true); // показываем экран "Спасибо!"
+    setServerError("");
+    const normalized = validate();
+    if (!normalized || sending) return;
+
+    setSending(true);
+    const result = await signUpWithPhonePin(name, normalized, pin);
+    setSending(false);
+
+    if (result.ok) {
+      navigate("/app");
+      return;
     }
+    // Код ошибки от функции переводим в понятный текст
+    setServerError(result.error === "exists" ? r.errorExists : r.errorNetwork);
   }
 
-  // ===== Экран успеха после отправки =====
-  if (submitted) {
-    return (
-      <main className="flex min-h-screen items-center justify-center px-4">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.4 }}
-          className="w-full max-w-md rounded-3xl bg-white p-10 text-center shadow-xl shadow-ink/10"
-        >
-          <span className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-sun/25 text-terracotta">
-            <PartyPopper size={30} aria-hidden />
-          </span>
-          <h1 className="mt-5 font-heading text-2xl font-extrabold">{r.successTitle}</h1>
-          <p className="mt-3 leading-relaxed text-ink/60">{r.successText}</p>
-          <button
-            type="button"
-            onClick={onBack}
-            className="mt-7 rounded-xl bg-terracotta px-6 py-3 font-semibold text-white transition-colors hover:bg-terracotta-dark"
-          >
-            {r.backToHome}
-          </button>
-        </motion.div>
-      </main>
-    );
-  }
-
-  // ===== Экран с формой =====
   return (
     <main className="min-h-screen lg:grid lg:grid-cols-2">
       {/* Левая колонка: преимущества (видна только на десктопе) */}
       <aside className="hidden bg-forest p-12 text-white lg:flex lg:flex-col lg:justify-center">
-        <a href="#" onClick={(e) => { e.preventDefault(); onBack(); }} className="flex items-center gap-2">
+        <a
+          href="#"
+          onClick={(e) => {
+            e.preventDefault();
+            navigate("/");
+          }}
+          className="flex items-center gap-2"
+        >
           <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-terracotta text-white">
             <Sparkles size={20} aria-hidden />
           </span>
@@ -176,12 +98,11 @@ export default function RegisterPage({ t, onBack }: Props) {
         </ul>
       </aside>
 
-      {/* Правая колонка: сама форма */}
+      {/* Правая колонка: форма */}
       <div className="flex min-h-screen flex-col px-4 py-6 sm:px-10 lg:min-h-0 lg:justify-center">
-        {/* Кнопка "назад" */}
         <button
           type="button"
-          onClick={onBack}
+          onClick={() => navigate("/")}
           className="inline-flex w-fit items-center gap-2 rounded-lg py-2 pr-3 text-sm font-medium text-ink/60 transition-colors hover:text-terracotta"
         >
           <ArrowLeft size={18} aria-hidden />
@@ -197,51 +118,62 @@ export default function RegisterPage({ t, onBack }: Props) {
           <h1 className="font-heading text-3xl font-extrabold">{r.title}</h1>
           <p className="mt-2 text-ink/60">{r.subtitle}</p>
 
-          {/* noValidate — отключаем встроенную проверку браузера,
-              потому что пишем свою, с понятными сообщениями */}
           <form onSubmit={handleSubmit} noValidate className="mt-8 flex flex-col gap-5">
             <Field
               id="name"
               label={r.nameLabel}
-              type="text"
               placeholder={r.namePlaceholder}
               value={name}
               error={errors.name}
               onChange={setName}
             />
             <Field
-              id="contact"
-              label={r.contactLabel}
-              type="text"
-              placeholder={r.contactPlaceholder}
-              value={contact}
-              error={errors.contact}
-              onChange={setContact}
+              id="phone"
+              label={r.phoneLabel}
+              type="tel"
+              inputMode="tel"
+              placeholder={r.phonePlaceholder}
+              value={phone}
+              error={errors.phone}
+              onChange={setPhone}
             />
             <Field
-              id="password"
-              label={r.passwordLabel}
+              id="pin"
+              label={r.pinLabel}
               type="password"
-              placeholder={r.passwordPlaceholder}
-              value={password}
-              error={errors.password}
-              onChange={setPassword}
+              inputMode="numeric"
+              maxLength={4}
+              big
+              placeholder={r.pinPlaceholder}
+              value={pin}
+              error={errors.pin}
+              hint={r.pinHint}
+              onChange={(v) => setPin(v.replace(/\D/g, ""))}
             />
+
+            {serverError && (
+              <p role="alert" className="rounded-xl bg-terracotta/10 px-4 py-3 text-sm font-medium text-terracotta">
+                {serverError}
+              </p>
+            )}
 
             <button
               type="submit"
-              className="mt-2 rounded-xl bg-terracotta px-6 py-3.5 font-semibold text-white shadow-lg shadow-terracotta/25 transition-all hover:-translate-y-0.5 hover:bg-terracotta-dark"
+              disabled={sending}
+              className="mt-2 rounded-xl bg-terracotta px-6 py-3.5 font-semibold text-white shadow-lg shadow-terracotta/25 transition-all hover:-translate-y-0.5 hover:bg-terracotta-dark disabled:cursor-wait disabled:opacity-60"
             >
-              {r.submit}
+              {sending ? "…" : r.submit}
             </button>
           </form>
 
-          {/* Ссылка-заглушка "Войти" — по заданию никуда не ведёт */}
           <p className="mt-6 text-center text-sm text-ink/60">
             {r.haveAccount}{" "}
             <a
               href="#"
-              onClick={(e) => e.preventDefault()}
+              onClick={(e) => {
+                e.preventDefault();
+                navigate("/login");
+              }}
               className="font-semibold text-forest underline-offset-2 hover:underline"
             >
               {r.login}

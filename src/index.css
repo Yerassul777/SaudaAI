@@ -1,0 +1,35 @@
+/*
+  Главный файл стилей.
+  Здесь подключается Tailwind CSS и задаётся "дизайн-система" проекта:
+  фирменные цвета и шрифты. Дальше в компонентах мы используем их
+  как обычные классы Tailwind: bg-cream, text-terracotta, font-heading и т.д.
+*/
+@import "tailwindcss";
+
+@theme {
+  /* Фирменная палитра Sauda AI */
+  --color-cream: #faf7f2; /* тёплый кремовый — фон всего сайта */
+  --color-ink: #211e1b; /* почти чёрный — основной текст */
+  --color-terracotta: #c75b39; /* терракота — главный акцент, кнопки */
+  --color-terracotta-dark: #a84a2d; /* терракота потемнее — для hover */
+  --color-forest: #2f5d50; /* глубокий зелёный — второй акцент */
+  --color-beige: #f1eadf; /* бежевый — фон карточек и блоков */
+  --color-sun: #e8b04b; /* тёплый жёлтый — подсветка успеха */
+
+  /* Шрифты (подключены в index.html через Google Fonts) */
+  --font-heading: "Manrope", sans-serif;
+  --font-body: "Inter", sans-serif;
+}
+
+/* Базовые настройки страницы */
+body {
+  background-color: var(--color-cream);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+  /* Плавная прокрутка, когда кликаем по пунктам меню */
+  scroll-behavior: smooth;
+}
+
+html {
+  scroll-behavior: smooth;
+}

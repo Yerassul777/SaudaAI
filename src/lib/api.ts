@@ -26,6 +26,8 @@ export type GeneratedCard = {
   description_kz: string;
   /** true — цену назвал продавец, ИИ лишь советует; false — цену предложил ИИ */
   price_is_user_set: boolean;
+  /** true — товар вне наших категорий, цену оценить не смогли (число не показываем) */
+  price_unknown: boolean;
   tags: string[];
   price_recommended: number;
   price_min: number;

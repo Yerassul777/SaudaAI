@@ -159,23 +159,30 @@ export default function CardResult({
         ))}
       </div>
 
-      {/* Цена. Если продавец назвал свою — показываем её и совет ИИ;
-          если нет — показываем предложение ИИ как отправную точку. */}
-      <div className="mt-4 rounded-2xl bg-forest p-6 text-white">
-        <p className="text-sm font-semibold text-white/70">
-          {card.price_is_user_set ? r.priceYours : r.priceSuggested}
-        </p>
-        <p className="mt-1 font-heading text-3xl font-extrabold">
-          {card.price_recommended.toLocaleString("ru-RU")} ₸
-        </p>
-        <p className="mt-1 text-sm text-white/70">
-          {r.priceRange}: {card.price_min.toLocaleString("ru-RU")}–
-          {card.price_max.toLocaleString("ru-RU")} ₸
-        </p>
-        <p className="mt-3 border-t border-white/15 pt-3 text-sm leading-relaxed text-white/85">
-          <span className="font-semibold">{r.whyPrice}:</span> {card.price_rationale}
-        </p>
-      </div>
+      {/* Цена. Три вида: не смогли оценить (просим цену у продавца),
+          цена продавца (+совет), предложение ИИ как отправная точка. */}
+      {card.price_unknown ? (
+        <div className="mt-4 rounded-2xl border-2 border-sun bg-sun/15 p-6">
+          <p className="font-heading text-lg font-extrabold">{r.priceUnknownTitle}</p>
+          <p className="mt-2 leading-relaxed text-ink/70">{r.priceUnknownText}</p>
+        </div>
+      ) : (
+        <div className="mt-4 rounded-2xl bg-forest p-6 text-white">
+          <p className="text-sm font-semibold text-white/70">
+            {card.price_is_user_set ? r.priceYours : r.priceSuggested}
+          </p>
+          <p className="mt-1 font-heading text-3xl font-extrabold">
+            {card.price_recommended.toLocaleString("ru-RU")} ₸
+          </p>
+          <p className="mt-1 text-sm text-white/70">
+            {r.priceRange}: {card.price_min.toLocaleString("ru-RU")}–
+            {card.price_max.toLocaleString("ru-RU")} ₸
+          </p>
+          <p className="mt-3 border-t border-white/15 pt-3 text-sm leading-relaxed text-white/85">
+            <span className="font-semibold">{r.whyPrice}:</span> {card.price_rationale}
+          </p>
+        </div>
+      )}
 
       {/* Действия */}
       <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap">

@@ -45,6 +45,7 @@ export default function CreateCardWizard() {
   const [what, setWhat] = useState("");
   const [madeOf, setMadeOf] = useState("");
   const [forWhom, setForWhom] = useState("");
+  const [price, setPrice] = useState("");
   const [freeText, setFreeText] = useState("");
 
   // Голос
@@ -139,10 +140,12 @@ export default function CreateCardWizard() {
 
     setFormError("");
     setStage("generating");
+    const desiredPrice = parseInt(price.replace(/\D/g, ""), 10);
     const answers: Answers = {
       what: what.trim(),
       madeOf: madeOf.trim(),
       forWhom: forWhom.trim(),
+      desiredPrice: Number.isFinite(desiredPrice) && desiredPrice > 0 ? desiredPrice : undefined,
       freeText: freeText.trim() || undefined,
     };
 
@@ -166,6 +169,7 @@ export default function CreateCardWizard() {
     setWhat("");
     setMadeOf("");
     setForWhom("");
+    setPrice("");
     setFreeText("");
     window.scrollTo(0, 0);
   }
@@ -329,6 +333,15 @@ export default function CreateCardWizard() {
                 placeholder={w.q3Placeholder}
                 value={forWhom}
                 onChange={setForWhom}
+              />
+              <Field
+                id="price"
+                label={w.priceLabel}
+                inputMode="numeric"
+                placeholder={w.pricePlaceholder}
+                value={price}
+                hint={w.priceHint}
+                onChange={(v) => setPrice(v.replace(/\D/g, ""))}
               />
             </div>
           </section>

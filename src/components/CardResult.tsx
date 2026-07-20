@@ -159,9 +159,12 @@ export default function CardResult({
         ))}
       </div>
 
-      {/* Цена и обоснование */}
+      {/* Цена. Если продавец назвал свою — показываем её и совет ИИ;
+          если нет — показываем предложение ИИ как отправную точку. */}
       <div className="mt-4 rounded-2xl bg-forest p-6 text-white">
-        <p className="text-sm font-semibold text-white/70">{r.priceLabel}</p>
+        <p className="text-sm font-semibold text-white/70">
+          {card.price_is_user_set ? r.priceYours : r.priceSuggested}
+        </p>
         <p className="mt-1 font-heading text-3xl font-extrabold">
           {card.price_recommended.toLocaleString("ru-RU")} ₸
         </p>

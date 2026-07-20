@@ -12,6 +12,8 @@ export type Answers = {
   what: string;
   madeOf: string;
   forWhom: string;
+  /** Цена, которую хочет продавец. 0/undefined — не указал, ИИ предложит сам */
+  desiredPrice?: number;
   /** Свободный рассказ продавца (обычно из голосового ввода) */
   freeText?: string;
 };
@@ -22,6 +24,8 @@ export type GeneratedCard = {
   title_kz: string;
   description_ru: string;
   description_kz: string;
+  /** true — цену назвал продавец, ИИ лишь советует; false — цену предложил ИИ */
+  price_is_user_set: boolean;
   tags: string[];
   price_recommended: number;
   price_min: number;

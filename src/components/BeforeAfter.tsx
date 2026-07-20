@@ -1,4 +1,4 @@
-import { ArrowRight, ArrowDown, ShoppingBag, Sparkles } from "lucide-react";
+import { ArrowRight, ArrowDown, Sparkles } from "lucide-react";
 import type { Content } from "../content";
 import FadeIn from "./FadeIn";
 
@@ -26,13 +26,19 @@ export default function BeforeAfter({ t }: Props) {
       <div className="mt-12 grid items-center gap-6 lg:grid-cols-[1fr_auto_1fr]">
         {/* ===== ДО: серо и уныло ===== */}
         <FadeIn>
-          <article className="rounded-3xl border-2 border-dashed border-ink/15 bg-white/60 p-6">
+          <article className="rounded-3xl border-2 border-dashed border-ink/15 bg-surface/60 p-6">
             <span className="inline-block rounded-full bg-ink/10 px-3 py-1 text-xs font-semibold text-ink/50">
               {t.beforeAfter.beforeLabel}
             </span>
-            <div className="mt-4 flex h-36 items-center justify-center rounded-2xl bg-ink/5">
-              <ShoppingBag size={36} className="text-ink/20" aria-hidden />
-            </div>
+            {/* То же фото, но блёклое и мутное — как обычно снимают «на бегу» */}
+            <img
+              src="/demo/feltbag.jpg"
+              alt=""
+              width={640}
+              height={640}
+              loading="lazy"
+              className="mt-4 h-36 w-full rounded-2xl object-cover opacity-50 blur-[1.5px] grayscale"
+            />
             <h3 className="mt-4 font-heading text-lg font-bold text-ink/50">
               {t.beforeAfter.beforeTitle}
             </h3>
@@ -55,9 +61,14 @@ export default function BeforeAfter({ t }: Props) {
               <Sparkles size={14} className="text-terracotta" aria-hidden />
               {t.beforeAfter.afterLabel}
             </span>
-            <div className="mt-4 flex h-36 items-center justify-center rounded-2xl bg-gradient-to-br from-beige to-sun/40">
-              <ShoppingBag size={36} className="text-terracotta/50" aria-hidden />
-            </div>
+            <img
+              src="/demo/feltbag.jpg"
+              alt=""
+              width={640}
+              height={640}
+              loading="lazy"
+              className="mt-4 h-36 w-full rounded-2xl object-cover"
+            />
             <h3 className="mt-4 font-heading text-lg font-bold leading-snug">
               {t.beforeAfter.afterTitle}
             </h3>

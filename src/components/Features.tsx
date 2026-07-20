@@ -1,16 +1,15 @@
-import { Heading1, ScrollText, Tags, CircleDollarSign, Languages } from "lucide-react";
+import { Languages, CircleDollarSign, MessageCircle, Camera } from "lucide-react";
 import type { Content } from "../content";
 import FadeIn from "./FadeIn";
 
 /*
-  Features — секция "Что умеет Sauda AI".
-  Сетка из 4 возможностей + бейдж "на казахском и русском".
-  id="features" — для прокрутки из меню.
+  Features — секция "Что вы получаете".
+  Сетка из 4 возможностей на зелёной полосе + бейдж про два языка.
 */
 
 type Props = { t: Content };
 
-const icons = [Heading1, ScrollText, Tags, CircleDollarSign];
+const icons = [Languages, CircleDollarSign, MessageCircle, Camera];
 
 export default function Features({ t }: Props) {
   return (

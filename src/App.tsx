@@ -16,6 +16,7 @@ import ProblemSection from "./components/ProblemSection";
 import HowItWorks from "./components/HowItWorks";
 import Features from "./components/Features";
 import BeforeAfter from "./components/BeforeAfter";
+import Quote from "./components/Quote";
 import Audience from "./components/Audience";
 import FAQ from "./components/FAQ";
 import CTASection from "./components/CTASection";
@@ -62,6 +63,7 @@ function Landing() {
         <HowItWorks t={t} />
         <Features t={t} />
         <BeforeAfter t={t} />
+        <Quote t={t} />
         <Audience t={t} />
         <FAQ t={t} />
         <CTASection t={t} onRegister={goToApp} />

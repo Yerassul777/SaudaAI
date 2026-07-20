@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Menu, X, Sparkles } from "lucide-react";
+import { motion } from "framer-motion";
 import type { Content, Lang } from "../content";
+import ThemeToggle from "./ThemeToggle";
 
 /*
   Navbar — "липкая" шапка сайта.
@@ -71,20 +73,23 @@ export default function Navbar({ t, lang, onLangChange, onRegister }: Props) {
           ))}
         </ul>
 
-        {/* Правая часть: язык + кнопка + бургер */}
+        {/* Правая часть: язык + тема + кнопка + бургер */}
         <div className="flex items-center gap-2 sm:gap-3">
           <div className="flex items-center gap-1 rounded-xl bg-beige p-1">
             <LangButton code="kz" />
             <LangButton code="ru" />
           </div>
 
-          <button
+          <ThemeToggle className="hidden sm:flex" />
+
+          <motion.button
             type="button"
+            whileTap={{ scale: 0.95 }}
             onClick={onRegister}
-            className="hidden rounded-xl bg-terracotta px-4 py-2 text-sm font-semibold text-white shadow-md shadow-terracotta/25 transition-colors hover:bg-terracotta-dark sm:block"
+            className="hidden rounded-xl bg-terracotta px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-terracotta/25 transition-colors hover:bg-terracotta-dark sm:block"
           >
             {t.nav.cta}
-          </button>
+          </motion.button>
 
           {/* Кнопка-бургер: видна только на телефоне */}
           <button
@@ -115,16 +120,19 @@ export default function Navbar({ t, lang, onLangChange, onRegister }: Props) {
               </li>
             ))}
           </ul>
-          <button
-            type="button"
-            onClick={() => {
-              setMenuOpen(false);
-              onRegister();
-            }}
-            className="mt-2 w-full rounded-xl bg-terracotta px-4 py-2.5 font-semibold text-white"
-          >
-            {t.nav.cta}
-          </button>
+          <div className="mt-2 flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                setMenuOpen(false);
+                onRegister();
+              }}
+              className="flex-1 rounded-xl bg-terracotta px-4 py-3 font-semibold text-white"
+            >
+              {t.nav.cta}
+            </button>
+            <ThemeToggle />
+          </div>
         </div>
       )}
     </header>

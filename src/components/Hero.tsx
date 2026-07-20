@@ -1,22 +1,24 @@
-import { Camera, Sparkles } from "lucide-react";
+import { Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
 import type { Content } from "../content";
+import { OrnamentDivider } from "./Ornament";
 
 /*
-  Hero — самый первый, главный экран сайта.
-  Слева: большой заголовок, подзаголовок, две кнопки и метрики доверия.
-  Справа: "мокап" — карточка товара, нарисованная обычными div-ами
-  и Tailwind-классами (без единой картинки, как требует задание).
+  Hero — первый экран. Слева заголовок и пульсирующая CTA, справа — карточка
+  товара с настоящим фото (сгенерировано нашей же функцией «студийное фото»).
 */
 
 type Props = {
   t: Content;
-  onRegister: () => void; // клик по "Начать бесплатно" ведёт на регистрацию
+  onRegister: () => void;
 };
 
 export default function Hero({ t, onRegister }: Props) {
   return (
-    <section id="top" className="mx-auto max-w-6xl px-4 py-16 sm:px-6 md:py-24">
+    <section id="top" className="mx-auto max-w-6xl px-4 pb-16 pt-10 sm:px-6 md:pb-24 md:pt-16">
+      {/* Орнаментная лента под шапкой */}
+      <OrnamentDivider className="mb-10 text-terracotta md:mb-14" />
+
       <div className="grid items-center gap-12 lg:grid-cols-2">
         {/* ===== Левая колонка: текст ===== */}
         <motion.div
@@ -32,21 +34,22 @@ export default function Hero({ t, onRegister }: Props) {
             {t.hero.subtitle}
           </p>
 
-          {/* Две кнопки: главная (терракота) и вторичная (обводка) */}
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-            <button
+            <motion.button
               type="button"
+              whileTap={{ scale: 0.96 }}
               onClick={onRegister}
-              className="rounded-xl bg-terracotta px-7 py-3.5 text-center font-semibold text-white shadow-lg shadow-terracotta/25 transition-all hover:-translate-y-0.5 hover:bg-terracotta-dark"
+              className="btn-pulse rounded-2xl bg-terracotta px-8 py-4 text-center text-lg font-bold text-white shadow-lg shadow-terracotta/25 transition-colors hover:bg-terracotta-dark"
             >
               {t.hero.primaryBtn}
-            </button>
-            <a
+            </motion.button>
+            <motion.a
+              whileTap={{ scale: 0.96 }}
               href="#how"
-              className="rounded-xl border-2 border-forest px-7 py-3.5 text-center font-semibold text-forest transition-colors hover:bg-forest hover:text-white"
+              className="rounded-2xl border-2 border-forest px-8 py-4 text-center text-lg font-semibold text-forest transition-colors hover:bg-forest hover:text-white"
             >
               {t.hero.secondaryBtn}
-            </a>
+            </motion.a>
           </div>
 
           {/* Метрики доверия */}
@@ -68,26 +71,28 @@ export default function Hero({ t, onRegister }: Props) {
           </dl>
         </motion.div>
 
-        {/* ===== Правая колонка: мокап карточки товара ===== */}
+        {/* ===== Правая колонка: карточка с живым фото ===== */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.15 }}
           className="relative mx-auto w-full max-w-sm"
         >
-          {/* Декоративное пятно за карточкой */}
           <div
             aria-hidden
-            className="absolute -inset-6 rounded-[32px] bg-terracotta/10 rotate-3"
+            className="absolute -inset-6 rotate-3 rounded-[32px] bg-terracotta/10"
           />
 
           <div className="relative rounded-3xl bg-surface p-5 shadow-xl shadow-ink/10">
-            {/* "Фото" товара — рисуем градиентом и иконкой, без картинок */}
-            <div className="flex h-52 items-center justify-center rounded-2xl bg-gradient-to-br from-beige to-sun/40">
-              <Camera size={48} className="text-ink/30" aria-hidden />
-            </div>
+            {/* Настоящее фото — сделано нашей же функцией «студийное фото» */}
+            <img
+              src="/demo/honey.jpg"
+              alt=""
+              width={640}
+              height={640}
+              className="h-56 w-full rounded-2xl object-cover"
+            />
 
-            {/* Бейдж "Готово за 10 сек" */}
             <span className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-sun/25 px-3 py-1 text-xs font-semibold text-ink">
               <Sparkles size={14} className="text-terracotta" aria-hidden />
               {t.hero.mockBadge}
@@ -98,7 +103,6 @@ export default function Hero({ t, onRegister }: Props) {
             </h3>
             <p className="mt-1.5 text-sm text-ink/60">{t.hero.mockDesc}</p>
 
-            {/* Теги */}
             <div className="mt-3 flex flex-wrap gap-1.5">
               {t.hero.mockTags.map((tag) => (
                 <span

@@ -1,16 +1,13 @@
-import { Camera, MessageCircleQuestion, Sparkles } from "lucide-react";
 import type { Content } from "../content";
 import FadeIn from "./FadeIn";
+import { OrnamentStep } from "./Ornament";
 
 /*
-  HowItWorks — секция "Как это работает": 3 простых шага.
-  id="how" нужен, чтобы пункт меню и кнопка героя могли
-  прокрутить страницу прямо сюда.
+  HowItWorks — «Как это работает»: 3 шага с номерами в орнаментных кружках
+  (мотив казахского орнамента вместо безликих иконок).
 */
 
 type Props = { t: Content };
-
-const icons = [Camera, MessageCircleQuestion, Sparkles];
 
 export default function HowItWorks({ t }: Props) {
   return (
@@ -25,29 +22,15 @@ export default function HowItWorks({ t }: Props) {
       </FadeIn>
 
       <ol className="mt-12 grid gap-6 md:grid-cols-3">
-        {t.how.steps.map((step, i) => {
-          const Icon = icons[i];
-          return (
-            <FadeIn key={step.title} delay={i * 0.12}>
-              <li className="relative h-full rounded-3xl bg-surface p-7 shadow-sm shadow-ink/5">
-                {/* Большой номер шага */}
-                <span
-                  aria-hidden
-                  className="absolute right-6 top-5 font-heading text-5xl font-extrabold text-beige"
-                >
-                  {i + 1}
-                </span>
-                <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-forest text-white">
-                  <Icon size={24} aria-hidden />
-                </span>
-                <h3 className="mt-5 font-heading text-xl font-bold">
-                  {i + 1}. {step.title}
-                </h3>
-                <p className="mt-2 leading-relaxed text-ink/60">{step.text}</p>
-              </li>
-            </FadeIn>
-          );
-        })}
+        {t.how.steps.map((step, i) => (
+          <FadeIn key={step.title} delay={i * 0.12}>
+            <li className="h-full rounded-3xl bg-surface p-7 text-center shadow-sm shadow-ink/5">
+              <OrnamentStep number={i + 1} className="text-terracotta" />
+              <h3 className="mt-5 font-heading text-xl font-bold">{step.title}</h3>
+              <p className="mt-2 leading-relaxed text-ink/60">{step.text}</p>
+            </li>
+          </FadeIn>
+        ))}
       </ol>
     </section>
   );

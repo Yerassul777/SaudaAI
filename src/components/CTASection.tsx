@@ -1,4 +1,5 @@
 import { ArrowRight } from "lucide-react";
+import { motion } from "framer-motion";
 import type { Content } from "../content";
 import FadeIn from "./FadeIn";
 
@@ -27,14 +28,15 @@ export default function CTASection({ t, onRegister }: Props) {
           </h2>
           <p className="relative mt-3 text-lg text-white/85">{t.cta.subtitle}</p>
 
-          <button
+          <motion.button
             type="button"
+            whileTap={{ scale: 0.96 }}
             onClick={onRegister}
-            className="relative mt-8 inline-flex items-center gap-2 rounded-xl bg-surface px-8 py-4 font-semibold text-terracotta shadow-lg transition-all hover:-translate-y-0.5 hover:shadow-xl"
+            className="relative mt-8 inline-flex items-center gap-2 rounded-xl bg-white px-8 py-4 text-lg font-bold text-terracotta shadow-lg transition-all hover:-translate-y-0.5 hover:shadow-xl"
           >
             {t.cta.button}
             <ArrowRight size={18} aria-hidden />
-          </button>
+          </motion.button>
         </div>
       </FadeIn>
     </section>

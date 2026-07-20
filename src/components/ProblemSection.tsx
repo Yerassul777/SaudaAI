@@ -15,7 +15,8 @@ const icons = [FileQuestion, Banknote, Clock, Languages];
 
 export default function ProblemSection({ t }: Props) {
   return (
-    <section className="bg-beige/60 py-16 md:py-24">
+    // Фон секции = фон страницы: никаких «швов» между блоками
+    <section className="py-16 md:py-24">
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
         <FadeIn>
           <h2 className="text-center font-heading text-3xl font-extrabold md:text-4xl">

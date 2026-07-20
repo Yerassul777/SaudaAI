@@ -20,11 +20,12 @@ import {
   type CardRow,
 } from "../lib/api";
 import AppHeader from "./AppHeader";
+import { formatForMarketplace, type ExportTarget } from "../lib/exportFormats";
 
 /*
   MyCards — сохранённые карточки. Карточка раскрывается по нажатию; внутри —
-  полный текст, теги, цена (её можно поправить), кнопки «Скопировать» /
-  «Пост» / «Сделать красивое фото» / «Удалить».
+  полный текст, теги, цена (её можно поправить), копирование (включая форматы
+  Kaspi/OLX/Wildberries), «Пост», «Сделать красивое фото», «Удалить».
 */
 export default function MyCards() {
   const { t, lang } = useLang();
@@ -298,6 +299,45 @@ export default function MyCards() {
                           <ImagePlus size={16} aria-hidden />
                           {genState[card.id] === "working" ? r.makingPhoto : r.makePhotoBtn}
                         </button>
+
+                        {/* Форматы под площадки */}
+                        {(
+                          [
+                            { id: "kaspi", label: "Kaspi", cls: "bg-[#f14635] text-white" },
+                            { id: "olx", label: "OLX", cls: "bg-[#002f34] text-[#7df9d6]" },
+                            { id: "wildberries", label: "WB", cls: "bg-[#7d31c9] text-white" },
+                          ] as const
+                        ).map((m) => (
+                          <button
+                            key={m.id}
+                            type="button"
+                            onClick={() =>
+                              copyText(
+                                `${m.id}-${card.id}`,
+                                formatForMarketplace(
+                                  m.id as ExportTarget,
+                                  {
+                                    title_ru: card.title_ru,
+                                    title_kz: card.title_kz,
+                                    description_ru: card.description_ru,
+                                    description_kz: card.description_kz,
+                                    tags: card.tags ?? [],
+                                    price: card.price_recommended || null,
+                                  },
+                                  lang
+                                )
+                              )
+                            }
+                            className={`flex items-center gap-1.5 rounded-xl px-4 py-2.5 text-sm font-semibold ${m.cls}`}
+                          >
+                            {copied === `${m.id}-${card.id}` ? (
+                              <Check size={14} aria-hidden />
+                            ) : (
+                              <Copy size={14} aria-hidden />
+                            )}
+                            {m.label}
+                          </button>
+                        ))}
 
                         <button
                           type="button"

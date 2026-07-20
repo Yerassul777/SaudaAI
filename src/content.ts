@@ -274,6 +274,9 @@ const ru = {
     priceUnknownText: "Для такого товара у нас нет рыночного ориентира, поэтому мы не стали выдумывать число. Вернитесь назад и впишите свою цену в поле «Ваша цена».",
     priceRange: "Ориентир рынка",
     whyPrice: "Совет по цене",
+    editPrice: "Изменить цену",
+    priceInputPlaceholder: "например, 15000",
+    savePrice: "Готово",
     copy: "Скопировать",
     copied: "Скопировано",
     postBtn: "Пост для WhatsApp",
@@ -292,6 +295,8 @@ const ru = {
     created: "Создана",
     delete: "Удалить",
     back: "Назад",
+    noPrice: "Цена не задана",
+    edit: "Изменить",
   },
 };
 
@@ -558,6 +563,9 @@ const kz: typeof ru = {
     priceUnknownText: "Мұндай тауар бойынша нарық бағдары жоқ, сондықтан біз сан ойлап таппадық. Артқа қайтып, «Сіздің бағаңыз» өрісіне өз бағаңызды жазыңыз.",
     priceRange: "Нарық бағдары",
     whyPrice: "Баға бойынша кеңес",
+    editPrice: "Бағаны өзгерту",
+    priceInputPlaceholder: "мысалы, 15000",
+    savePrice: "Дайын",
     copy: "Көшіру",
     copied: "Көшірілді",
     postBtn: "WhatsApp посты",
@@ -576,6 +584,8 @@ const kz: typeof ru = {
     created: "Жасалған күні",
     delete: "Жою",
     back: "Артқа",
+    noPrice: "Баға қойылмаған",
+    edit: "Өзгерту",
   },
 };
 

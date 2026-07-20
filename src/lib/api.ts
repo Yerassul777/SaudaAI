@@ -149,3 +149,14 @@ export async function deleteCard(id: string): Promise<void> {
   const { error } = await supabase.from("cards").delete().eq("id", id);
   if (error) throw new Error(error.message);
 }
+
+/** Точечное обновление сохранённой карточки (цена, сгенерированное фото). */
+export async function updateCard(
+  id: string,
+  fields: Partial<
+    Pick<CardRow, "price_recommended" | "generated_photo_path">
+  >
+): Promise<void> {
+  const { error } = await supabase.from("cards").update(fields).eq("id", id);
+  if (error) throw new Error(error.message);
+}

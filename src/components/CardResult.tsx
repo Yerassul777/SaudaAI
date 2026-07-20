@@ -51,12 +51,31 @@ export default function CardResult({
   const [generatedUrl, setGeneratedUrl] = useState<string | null>(null);
   const [generatedPath, setGeneratedPath] = useState<string | null>(null);
 
+  // Цену можно поправить прямо здесь: если ИИ не смог оценить или продавец
+  // передумал — вводит своё число, и карточка сразу берёт его.
+  const [customPrice, setCustomPrice] = useState<number | null>(null);
+  const [editingPrice, setEditingPrice] = useState(false);
+  const [priceInput, setPriceInput] = useState("");
+
+  const effectivePrice = customPrice ?? (card.price_unknown ? null : card.price_recommended);
+  const effectiveUserSet = customPrice !== null || card.price_is_user_set;
+
+  function applyPrice() {
+    const value = parseInt(priceInput.replace(/\D/g, ""), 10);
+    if (Number.isFinite(value) && value > 0) {
+      setCustomPrice(value);
+      setEditingPrice(false);
+    }
+  }
+
   /** Полный текст карточки на выбранном языке — для вставки на маркетплейс */
   function cardText(): string {
     const title = lang === "kz" ? card.title_kz : card.title_ru;
     const description = lang === "kz" ? card.description_kz : card.description_ru;
     const tags = card.tags.map((tag) => `#${tag.replace(/\s+/g, "")}`).join(" ");
-    return `${title}\n\n${description}\n\n${tags}\n\n${card.price_recommended.toLocaleString("ru-RU")} ₸`;
+    const priceLine =
+      effectivePrice !== null ? `\n\n${effectivePrice.toLocaleString("ru-RU")} ₸` : "";
+    return `${title}\n\n${description}\n\n${tags}${priceLine}`;
   }
 
   async function copyText(kind: "card" | "post") {
@@ -77,7 +96,13 @@ export default function CardResult({
         generatedPhotoPath: generatedPath,
         category,
         answers,
-        card,
+        // Сохраняем с учётом ручной правки цены
+        card: {
+          ...card,
+          price_recommended: effectivePrice ?? 0,
+          price_is_user_set: effectiveUserSet,
+          price_unknown: effectivePrice === null,
+        },
       });
       setSaved(true);
     } finally {
@@ -159,28 +184,85 @@ export default function CardResult({
         ))}
       </div>
 
-      {/* Цена. Три вида: не смогли оценить (просим цену у продавца),
-          цена продавца (+совет), предложение ИИ как отправная точка. */}
-      {card.price_unknown ? (
+      {/* Цена. Не смогли оценить → поле для своей цены прямо здесь.
+          Иначе → число (цена продавца или предложение ИИ) с кнопкой «Изменить». */}
+      {effectivePrice === null ? (
         <div className="mt-4 rounded-2xl border-2 border-sun bg-sun/15 p-6">
           <p className="font-heading text-lg font-extrabold">{r.priceUnknownTitle}</p>
           <p className="mt-2 leading-relaxed text-ink/70">{r.priceUnknownText}</p>
+          <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+            <input
+              type="text"
+              inputMode="numeric"
+              value={priceInput}
+              onChange={(e) => setPriceInput(e.target.value.replace(/\D/g, ""))}
+              placeholder={r.priceInputPlaceholder}
+              className="w-full rounded-xl border-2 border-ink/15 bg-white px-4 py-3 text-lg font-semibold outline-none focus:border-forest sm:max-w-[220px]"
+            />
+            <button
+              type="button"
+              onClick={applyPrice}
+              className="rounded-xl bg-terracotta px-6 py-3 font-semibold text-white transition-colors hover:bg-terracotta-dark"
+            >
+              {r.savePrice}
+            </button>
+          </div>
         </div>
       ) : (
         <div className="mt-4 rounded-2xl bg-forest p-6 text-white">
-          <p className="text-sm font-semibold text-white/70">
-            {card.price_is_user_set ? r.priceYours : r.priceSuggested}
-          </p>
-          <p className="mt-1 font-heading text-3xl font-extrabold">
-            {card.price_recommended.toLocaleString("ru-RU")} ₸
-          </p>
-          <p className="mt-1 text-sm text-white/70">
-            {r.priceRange}: {card.price_min.toLocaleString("ru-RU")}–
-            {card.price_max.toLocaleString("ru-RU")} ₸
-          </p>
-          <p className="mt-3 border-t border-white/15 pt-3 text-sm leading-relaxed text-white/85">
-            <span className="font-semibold">{r.whyPrice}:</span> {card.price_rationale}
-          </p>
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="text-sm font-semibold text-white/70">
+                {effectiveUserSet ? r.priceYours : r.priceSuggested}
+              </p>
+              <p className="mt-1 font-heading text-3xl font-extrabold">
+                {effectivePrice.toLocaleString("ru-RU")} ₸
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                setPriceInput(String(effectivePrice));
+                setEditingPrice((v) => !v);
+              }}
+              className="shrink-0 rounded-lg bg-white/15 px-3 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-white/25"
+            >
+              {r.editPrice}
+            </button>
+          </div>
+
+          {editingPrice && (
+            <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+              <input
+                type="text"
+                inputMode="numeric"
+                value={priceInput}
+                onChange={(e) => setPriceInput(e.target.value.replace(/\D/g, ""))}
+                placeholder={r.priceInputPlaceholder}
+                className="w-full rounded-xl border-2 border-white/30 bg-white/10 px-4 py-2.5 font-semibold text-white outline-none placeholder:text-white/40 focus:border-white sm:max-w-[200px]"
+              />
+              <button
+                type="button"
+                onClick={applyPrice}
+                className="rounded-xl bg-white px-5 py-2.5 font-semibold text-forest transition-colors hover:bg-white/90"
+              >
+                {r.savePrice}
+              </button>
+            </div>
+          )}
+
+          {/* Ориентир и совет показываем только для оценки ИИ, не для ручной цены */}
+          {customPrice === null && (
+            <>
+              <p className="mt-3 text-sm text-white/70">
+                {r.priceRange}: {card.price_min.toLocaleString("ru-RU")}–
+                {card.price_max.toLocaleString("ru-RU")} ₸
+              </p>
+              <p className="mt-3 border-t border-white/15 pt-3 text-sm leading-relaxed text-white/85">
+                <span className="font-semibold">{r.whyPrice}:</span> {card.price_rationale}
+              </p>
+            </>
+          )}
         </div>
       )}
 

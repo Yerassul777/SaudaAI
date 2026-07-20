@@ -1,22 +1,21 @@
-import { useNavigate, useLocation } from "react-router-dom";
-import { Sparkles, LogOut, LayoutGrid } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Sparkles } from "lucide-react";
+import { motion } from "framer-motion";
 import { useAuth, useLang } from "../context/AppContext";
+import ThemeToggle from "./ThemeToggle";
 
 /*
-  AppHeader — шапка личного кабинета: логотип, «Мои карточки»,
-  переключатель языка и выход. Крупные зоны нажатия — интерфейс
-  рассчитан на людей, которым мелкие кнопки неудобны.
+  AppHeader — шапка кабинета: логотип, переключатели языка и темы,
+  кружок профиля с первой буквой имени. Всё вторичное (карточки, прогресс,
+  выход) живёт в профиле — шапка остаётся простой.
 */
 export default function AppHeader() {
   const { t, lang, setLang } = useLang();
-  const { signOut } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation();
 
-  async function handleLogout() {
-    await signOut();
-    navigate("/");
-  }
+  const name = (user?.user_metadata?.name as string) ?? "";
+  const initial = name.trim().charAt(0).toUpperCase() || "•";
 
   return (
     <header className="sticky top-0 z-20 border-b border-ink/5 bg-cream/90 backdrop-blur">
@@ -33,18 +32,7 @@ export default function AppHeader() {
         </button>
 
         <div className="flex items-center gap-2">
-          {location.pathname !== "/app/cards" && (
-            <button
-              type="button"
-              onClick={() => navigate("/app/cards")}
-              className="hidden items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold text-ink/70 transition-colors hover:bg-beige sm:flex"
-            >
-              <LayoutGrid size={18} aria-hidden />
-              {t.app.recentTitle}
-            </button>
-          )}
-
-          {/* Переключатель языка — как на лендинге */}
+          {/* Язык */}
           <div className="flex rounded-xl bg-beige p-1">
             {(["kz", "ru"] as const).map((code) => (
               <button
@@ -60,15 +48,19 @@ export default function AppHeader() {
             ))}
           </div>
 
-          <button
+          <ThemeToggle />
+
+          {/* Профиль: кружок с инициалом */}
+          <motion.button
             type="button"
-            onClick={handleLogout}
-            title={t.app.logout}
-            className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold text-ink/70 transition-colors hover:bg-beige"
+            whileTap={{ scale: 0.92 }}
+            onClick={() => navigate("/app/profile")}
+            aria-label={t.profile.title}
+            title={t.profile.title}
+            className="flex h-11 w-11 items-center justify-center rounded-full bg-forest font-heading text-lg font-extrabold text-white"
           >
-            <LogOut size={18} aria-hidden />
-            <span className="hidden sm:inline">{t.app.logout}</span>
-          </button>
+            {initial}
+          </motion.button>
         </div>
       </div>
     </header>

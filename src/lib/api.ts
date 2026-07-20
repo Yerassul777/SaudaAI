@@ -150,6 +150,60 @@ export async function deleteCard(id: string): Promise<void> {
   if (error) throw new Error(error.message);
 }
 
+/* ===== Тренажёр ===== */
+
+export type PracticeSession = {
+  id: string;
+  marketplace: string;
+  score: number;
+  feedback: string;
+  created_at: string;
+};
+
+/** Оценка диалога тренажёра: один вызов ИИ на всю сессию. */
+export async function getPracticeFeedback(input: {
+  marketplace: string;
+  ad: { title: string; category: string; price: string; description: string };
+  dialogue: { question: string; answer: string }[];
+  lang: Lang;
+}): Promise<{ score: number; feedback: string; tip: string }> {
+  const { data, error } = await supabase.functions.invoke("generate-card", {
+    body: {
+      action: "practice-feedback",
+      marketplace: input.marketplace,
+      ad: input.ad,
+      dialogue: input.dialogue,
+      lang: input.lang,
+    },
+  });
+  if (error) throw new Error("practice feedback failed");
+  return data as { score: number; feedback: string; tip: string };
+}
+
+export async function savePracticeSession(input: {
+  userId: string;
+  marketplace: string;
+  score: number;
+  feedback: string;
+}): Promise<void> {
+  const { error } = await supabase.from("practice_sessions").insert({
+    user_id: input.userId,
+    marketplace: input.marketplace,
+    score: input.score,
+    feedback: input.feedback,
+  });
+  if (error) throw new Error(error.message);
+}
+
+export async function listPracticeSessions(): Promise<PracticeSession[]> {
+  const { data, error } = await supabase
+    .from("practice_sessions")
+    .select("id, marketplace, score, feedback, created_at")
+    .order("created_at", { ascending: false });
+  if (error) throw new Error(error.message);
+  return (data ?? []) as PracticeSession[];
+}
+
 /** Точечное обновление сохранённой карточки (цена, сгенерированное фото). */
 export async function updateCard(
   id: string,

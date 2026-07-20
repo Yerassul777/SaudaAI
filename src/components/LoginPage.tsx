@@ -1,33 +1,35 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
 import { useLang } from "../context/AppContext";
 import { normalizePhone, isValidPin, signInWithPhonePin } from "../lib/auth";
 import Field from "./Field";
+import PinInput from "./PinInput";
+import { OrnamentDivider } from "./Ornament";
 
 /*
-  LoginPage — вход: номер телефона + ПИН. Два поля, одна кнопка.
-
-  Сервер (Edge Function auth-phone-pin) считает неудачные попытки:
-  после пятой блокирует номер на 15 минут. Здесь мы показываем
-  и остаток попыток, и время блокировки.
+  LoginPage — вход: номер + ПИН из 4 ячеек, форма по центру.
+  В ошибку «не подходит» встроена ссылка на регистрацию: частый случай —
+  человек опечатался в номере или ещё не создавал аккаунт.
 */
 export default function LoginPage() {
   const { t } = useLang();
   const navigate = useNavigate();
   const l = t.login;
-  const r = t.register; // общие тексты ошибок валидации
+  const r = t.register;
 
   const [phone, setPhone] = useState("");
   const [pin, setPin] = useState("");
   const [errors, setErrors] = useState({ phone: "", pin: "" });
   const [serverError, setServerError] = useState("");
+  const [showRegisterHint, setShowRegisterHint] = useState(false);
   const [sending, setSending] = useState(false);
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
     setServerError("");
+    setShowRegisterHint(false);
 
     const next = { phone: "", pin: "" };
     const normalized = normalizePhone(phone);
@@ -55,33 +57,44 @@ export default function LoginPage() {
           ? ` ${l.errorAttemptsLeft} ${result.attemptsLeft}`
           : "";
       setServerError(l.errorWrongPin + left);
+      setShowRegisterHint(true);
     } else {
       setServerError(r.errorNetwork);
     }
   }
 
   return (
-    <main className="flex min-h-screen flex-col px-4 py-6 sm:px-10">
+    <main className="ornament-bg flex min-h-screen flex-col px-4 py-6">
       <button
         type="button"
         onClick={() => navigate("/")}
-        className="inline-flex w-fit items-center gap-2 rounded-lg py-2 pr-3 text-sm font-medium text-ink/60 transition-colors hover:text-terracotta"
+        className="inline-flex w-fit items-center gap-2 rounded-lg py-2 pr-3 font-medium text-ink/60 transition-colors hover:text-terracotta"
       >
         <ArrowLeft size={18} aria-hidden />
         {r.backToHome}
       </button>
 
-      <div className="flex flex-1 items-center justify-center">
+      <div className="flex flex-1 items-center justify-center py-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
-          className="w-full max-w-md rounded-3xl bg-surface p-8 shadow-xl shadow-ink/5 sm:p-10"
+          className="w-full max-w-md rounded-3xl bg-surface p-7 shadow-xl shadow-ink/10 sm:p-9"
         >
-          <h1 className="font-heading text-3xl font-extrabold">{l.title}</h1>
-          <p className="mt-2 text-ink/60">{l.subtitle}</p>
+          <div className="flex items-center justify-center gap-2">
+            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-terracotta text-white">
+              <Sparkles size={22} aria-hidden />
+            </span>
+            <span className="font-heading text-2xl font-extrabold">Sauda AI</span>
+          </div>
+          <OrnamentDivider className="mt-4 text-terracotta" />
 
-          <form onSubmit={handleSubmit} noValidate className="mt-8 flex flex-col gap-5">
+          <h1 className="mt-5 text-center font-heading text-3xl font-extrabold">
+            {l.title}
+          </h1>
+          <p className="mt-2 text-center text-ink/60">{l.subtitle}</p>
+
+          <form onSubmit={handleSubmit} noValidate className="mt-7 flex flex-col gap-5">
             <Field
               id="phone"
               label={l.phoneLabel}
@@ -92,35 +105,51 @@ export default function LoginPage() {
               error={errors.phone}
               onChange={setPhone}
             />
-            <Field
-              id="pin"
-              label={l.pinLabel}
-              type="password"
-              inputMode="numeric"
-              maxLength={4}
-              big
-              placeholder={l.pinPlaceholder}
-              value={pin}
-              error={errors.pin}
-              onChange={(v) => setPin(v.replace(/\D/g, ""))}
-            />
+
+            <div>
+              <label className="mb-2 block text-sm font-semibold" htmlFor="pin">
+                {l.pinLabel}
+              </label>
+              <PinInput id="pin" value={pin} onChange={setPin} error={Boolean(errors.pin)} />
+              {errors.pin && (
+                <p role="alert" className="mt-2 text-center text-sm font-medium text-terracotta">
+                  {errors.pin}
+                </p>
+              )}
+            </div>
 
             {serverError && (
-              <p role="alert" className="rounded-xl bg-terracotta/10 px-4 py-3 text-sm font-medium text-terracotta">
+              <div role="alert" className="rounded-xl bg-terracotta/10 px-4 py-3 text-sm font-medium text-terracotta">
                 {serverError}
-              </p>
+                {showRegisterHint && (
+                  <>
+                    {" "}
+                    <a
+                      href="#"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        navigate("/register");
+                      }}
+                      className="font-semibold underline underline-offset-2"
+                    >
+                      {l.registerLink}
+                    </a>
+                  </>
+                )}
+              </div>
             )}
 
-            <button
+            <motion.button
               type="submit"
+              whileTap={{ scale: 0.97 }}
               disabled={sending}
-              className="mt-2 rounded-xl bg-terracotta px-6 py-3.5 font-semibold text-white shadow-lg shadow-terracotta/25 transition-all hover:-translate-y-0.5 hover:bg-terracotta-dark disabled:cursor-wait disabled:opacity-60"
+              className="mt-1 rounded-2xl bg-terracotta px-6 py-4 text-lg font-bold text-white shadow-lg shadow-terracotta/25 transition-colors hover:bg-terracotta-dark disabled:cursor-wait disabled:opacity-60"
             >
               {sending ? "…" : l.submit}
-            </button>
+            </motion.button>
           </form>
 
-          <p className="mt-6 text-center text-sm text-ink/60">
+          <p className="mt-6 text-center text-ink/60">
             {l.noAccount}{" "}
             <a
               href="#"

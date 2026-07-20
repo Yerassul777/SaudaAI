@@ -1,21 +1,18 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Check, Sparkles } from "lucide-react";
+import { ArrowLeft, ShieldCheck, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
 import { useLang } from "../context/AppContext";
 import { normalizePhone, isValidPin, signUpWithPhonePin } from "../lib/auth";
 import Field from "./Field";
+import PinInput from "./PinInput";
+import { OrnamentDivider } from "./Ornament";
 
 /*
-  RegisterPage — настоящая регистрация: имя, номер телефона и 4-значный ПИН.
-
-  Почему ПИН, а не пароль: аудитория сервиса каждый день вводит ПИН банковской
-  карты, а пароли забывает. Ошиблись 5 раз — сервер заблокирует номер на
-  15 минут (см. Edge Function auth-phone-pin), поэтому короткий код безопасен
-  настолько, насколько нужно для MVP.
-
-  После успешной регистрации функция сразу возвращает сессию,
-  и мы попадаем на дашборд без лишних шагов.
+  RegisterPage — регистрация: имя, номер, ПИН из 4 ячеек.
+  Форма по центру экрана на лёгком орнамент-фоне. Под полем номера — блок
+  доверия: аудитория боится оставлять номер, объясняем простыми словами,
+  что это просто логин.
 */
 export default function RegisterPage() {
   const { t } = useLang();
@@ -59,66 +56,42 @@ export default function RegisterPage() {
       navigate("/app");
       return;
     }
-    // Код ошибки от функции переводим в понятный текст
     setServerError(result.error === "exists" ? r.errorExists : r.errorNetwork);
   }
 
   return (
-    <main className="min-h-screen lg:grid lg:grid-cols-2">
-      {/* Левая колонка: преимущества (видна только на десктопе) */}
-      <aside className="hidden bg-forest p-12 text-white lg:flex lg:flex-col lg:justify-center">
-        <a
-          href="#"
-          onClick={(e) => {
-            e.preventDefault();
-            navigate("/");
-          }}
-          className="flex items-center gap-2"
-        >
-          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-terracotta text-white">
-            <Sparkles size={20} aria-hidden />
-          </span>
-          <span className="font-heading text-2xl font-extrabold">Sauda AI</span>
-        </a>
+    <main className="ornament-bg flex min-h-screen flex-col px-4 py-6">
+      <button
+        type="button"
+        onClick={() => navigate("/")}
+        className="inline-flex w-fit items-center gap-2 rounded-lg py-2 pr-3 font-medium text-ink/60 transition-colors hover:text-terracotta"
+      >
+        <ArrowLeft size={18} aria-hidden />
+        {r.backToHome}
+      </button>
 
-        <h2 className="mt-10 max-w-md font-heading text-3xl font-extrabold leading-snug">
-          {t.hero.title}
-        </h2>
-
-        <p className="mt-6 font-semibold text-white/80">{r.benefitsTitle}</p>
-        <ul className="mt-4 flex flex-col gap-3">
-          {r.benefits.map((benefit) => (
-            <li key={benefit} className="flex items-start gap-3">
-              <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-sun text-ink">
-                <Check size={14} aria-hidden />
-              </span>
-              <span className="text-white/85">{benefit}</span>
-            </li>
-          ))}
-        </ul>
-      </aside>
-
-      {/* Правая колонка: форма */}
-      <div className="flex min-h-screen flex-col px-4 py-6 sm:px-10 lg:min-h-0 lg:justify-center">
-        <button
-          type="button"
-          onClick={() => navigate("/")}
-          className="inline-flex w-fit items-center gap-2 rounded-lg py-2 pr-3 text-sm font-medium text-ink/60 transition-colors hover:text-terracotta"
-        >
-          <ArrowLeft size={18} aria-hidden />
-          {r.backToHome}
-        </button>
-
+      <div className="flex flex-1 items-center justify-center py-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
-          className="mx-auto mt-6 w-full max-w-md lg:mt-0"
+          className="w-full max-w-md rounded-3xl bg-surface p-7 shadow-xl shadow-ink/10 sm:p-9"
         >
-          <h1 className="font-heading text-3xl font-extrabold">{r.title}</h1>
-          <p className="mt-2 text-ink/60">{r.subtitle}</p>
+          {/* Логотип + орнамент */}
+          <div className="flex items-center justify-center gap-2">
+            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-terracotta text-white">
+              <Sparkles size={22} aria-hidden />
+            </span>
+            <span className="font-heading text-2xl font-extrabold">Sauda AI</span>
+          </div>
+          <OrnamentDivider className="mt-4 text-terracotta" />
 
-          <form onSubmit={handleSubmit} noValidate className="mt-8 flex flex-col gap-5">
+          <h1 className="mt-5 text-center font-heading text-3xl font-extrabold">
+            {r.title}
+          </h1>
+          <p className="mt-2 text-center text-ink/60">{r.subtitle}</p>
+
+          <form onSubmit={handleSubmit} noValidate className="mt-7 flex flex-col gap-5">
             <Field
               id="name"
               label={r.nameLabel}
@@ -127,29 +100,40 @@ export default function RegisterPage() {
               error={errors.name}
               onChange={setName}
             />
-            <Field
-              id="phone"
-              label={r.phoneLabel}
-              type="tel"
-              inputMode="tel"
-              placeholder={r.phonePlaceholder}
-              value={phone}
-              error={errors.phone}
-              onChange={setPhone}
-            />
-            <Field
-              id="pin"
-              label={r.pinLabel}
-              type="password"
-              inputMode="numeric"
-              maxLength={4}
-              big
-              placeholder={r.pinPlaceholder}
-              value={pin}
-              error={errors.pin}
-              hint={r.pinHint}
-              onChange={(v) => setPin(v.replace(/\D/g, ""))}
-            />
+            <div>
+              <Field
+                id="phone"
+                label={r.phoneLabel}
+                type="tel"
+                inputMode="tel"
+                placeholder={r.phonePlaceholder}
+                value={phone}
+                error={errors.phone}
+                onChange={setPhone}
+              />
+              {/* Блок доверия: почему оставить номер — безопасно */}
+              <div className="mt-3 flex items-start gap-3 rounded-xl bg-forest/10 p-3.5">
+                <ShieldCheck size={20} className="mt-0.5 shrink-0 text-forest" aria-hidden />
+                <p className="text-sm leading-relaxed text-ink/70">
+                  <span className="font-semibold text-forest">{r.trustTitle}</span>{" "}
+                  {r.trustText}
+                </p>
+              </div>
+            </div>
+
+            <div>
+              <label className="mb-2 block text-sm font-semibold" htmlFor="pin">
+                {r.pinLabel}
+              </label>
+              <PinInput id="pin" value={pin} onChange={setPin} error={Boolean(errors.pin)} />
+              {errors.pin ? (
+                <p role="alert" className="mt-2 text-center text-sm font-medium text-terracotta">
+                  {errors.pin}
+                </p>
+              ) : (
+                <p className="mt-2 text-center text-sm text-ink/50">{r.pinHint}</p>
+              )}
+            </div>
 
             {serverError && (
               <p role="alert" className="rounded-xl bg-terracotta/10 px-4 py-3 text-sm font-medium text-terracotta">
@@ -157,16 +141,17 @@ export default function RegisterPage() {
               </p>
             )}
 
-            <button
+            <motion.button
               type="submit"
+              whileTap={{ scale: 0.97 }}
               disabled={sending}
-              className="mt-2 rounded-xl bg-terracotta px-6 py-3.5 font-semibold text-white shadow-lg shadow-terracotta/25 transition-all hover:-translate-y-0.5 hover:bg-terracotta-dark disabled:cursor-wait disabled:opacity-60"
+              className="btn-pulse mt-1 rounded-2xl bg-terracotta px-6 py-4 text-lg font-bold text-white shadow-lg shadow-terracotta/25 transition-colors hover:bg-terracotta-dark disabled:cursor-wait disabled:opacity-60"
             >
               {sending ? "…" : r.submit}
-            </button>
+            </motion.button>
           </form>
 
-          <p className="mt-6 text-center text-sm text-ink/60">
+          <p className="mt-6 text-center text-ink/60">
             {r.haveAccount}{" "}
             <a
               href="#"

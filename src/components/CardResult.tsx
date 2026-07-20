@@ -15,6 +15,7 @@ import {
   type Answers,
   type GeneratedCard,
 } from "../lib/api";
+import { formatForMarketplace, type ExportTarget } from "../lib/exportFormats";
 
 /*
   CardResult — готовая карточка: тексты на двух языках, цена с объяснением,
@@ -44,7 +45,7 @@ export default function CardResult({
   const { user } = useAuth();
   const r = t.result;
 
-  const [copied, setCopied] = useState<"card" | "post" | null>(null);
+  const [copied, setCopied] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [imageState, setImageState] = useState<"idle" | "working" | "done">("idle");
@@ -83,6 +84,26 @@ export default function CardResult({
       kind === "card" ? cardText() : card.social_post
     );
     setCopied(kind);
+    setTimeout(() => setCopied(null), 2500);
+  }
+
+  /** Копия в формате конкретной площадки (форматируется на клиенте) */
+  async function copyForMarketplace(target: ExportTarget) {
+    await navigator.clipboard.writeText(
+      formatForMarketplace(
+        target,
+        {
+          title_ru: card.title_ru,
+          title_kz: card.title_kz,
+          description_ru: card.description_ru,
+          description_kz: card.description_kz,
+          tags: card.tags,
+          price: effectivePrice,
+        },
+        lang
+      )
+    );
+    setCopied(target);
     setTimeout(() => setCopied(null), 2500);
   }
 
@@ -305,6 +326,29 @@ export default function CardResult({
           {saved ? <Check size={18} aria-hidden /> : <Save size={18} aria-hidden />}
           {saved ? r.saved : r.saveBtn}
         </button>
+      </div>
+
+      {/* Экспорт под площадки: тот же текст, отформатированный под их правила */}
+      <p className="mt-8 font-heading font-bold">{r.exportTitle}</p>
+      <div className="mt-3 flex flex-wrap gap-3">
+        {(
+          [
+            { id: "kaspi", label: "Kaspi", cls: "bg-[#f14635] text-white" },
+            { id: "olx", label: "OLX", cls: "bg-[#002f34] text-[#7df9d6]" },
+            { id: "wildberries", label: "Wildberries", cls: "bg-[#7d31c9] text-white" },
+          ] as const
+        ).map((m) => (
+          <motion.button
+            key={m.id}
+            type="button"
+            whileTap={{ scale: 0.95 }}
+            onClick={() => copyForMarketplace(m.id)}
+            className={`flex items-center gap-2 rounded-xl px-5 py-3 font-semibold shadow-sm ${m.cls}`}
+          >
+            {copied === m.id ? <Check size={16} aria-hidden /> : <Copy size={16} aria-hidden />}
+            {copied === m.id ? r.copied : m.label}
+          </motion.button>
+        ))}
       </div>
 
       <button

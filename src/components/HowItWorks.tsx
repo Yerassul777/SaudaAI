@@ -29,7 +29,7 @@ export default function HowItWorks({ t }: Props) {
           const Icon = icons[i];
           return (
             <FadeIn key={step.title} delay={i * 0.12}>
-              <li className="relative h-full rounded-3xl bg-white p-7 shadow-sm shadow-ink/5">
+              <li className="relative h-full rounded-3xl bg-surface p-7 shadow-sm shadow-ink/5">
                 {/* Большой номер шага */}
                 <span
                   aria-hidden

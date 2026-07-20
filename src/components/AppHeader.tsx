@@ -52,7 +52,7 @@ export default function AppHeader() {
                 type="button"
                 onClick={() => setLang(code)}
                 className={`rounded-lg px-3 py-1.5 text-sm font-bold uppercase transition-colors ${
-                  lang === code ? "bg-white shadow-sm" : "text-ink/50"
+                  lang === code ? "bg-surface shadow-sm" : "text-ink/50"
                 }`}
               >
                 {code}

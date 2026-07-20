@@ -81,7 +81,7 @@ export default function Hero({ t, onRegister }: Props) {
             className="absolute -inset-6 rounded-[32px] bg-terracotta/10 rotate-3"
           />
 
-          <div className="relative rounded-3xl bg-white p-5 shadow-xl shadow-ink/10">
+          <div className="relative rounded-3xl bg-surface p-5 shadow-xl shadow-ink/10">
             {/* "Фото" товара — рисуем градиентом и иконкой, без картинок */}
             <div className="flex h-52 items-center justify-center rounded-2xl bg-gradient-to-br from-beige to-sun/40">
               <Camera size={48} className="text-ink/30" aria-hidden />

@@ -79,7 +79,7 @@ export default function Dashboard() {
                   <button
                     type="button"
                     onClick={() => navigate("/app/cards")}
-                    className="w-full rounded-2xl bg-white p-5 text-left shadow-sm transition-shadow hover:shadow-md"
+                    className="w-full rounded-2xl bg-surface p-5 text-left shadow-sm transition-shadow hover:shadow-md"
                   >
                     <p className="font-heading font-bold leading-snug">
                       {lang === "kz" ? card.title_kz : card.title_ru}

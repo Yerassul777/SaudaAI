@@ -35,7 +35,7 @@ export default function Field(props: Props) {
         maxLength={props.maxLength}
         onChange={(e) => props.onChange(e.target.value)}
         aria-invalid={Boolean(props.error)}
-        className={`w-full rounded-xl border-2 bg-white px-4 py-3 text-ink outline-none transition-colors placeholder:text-ink/30 focus:border-forest ${
+        className={`w-full rounded-xl border-2 bg-surface px-4 py-3 text-ink outline-none transition-colors placeholder:text-ink/30 focus:border-forest ${
           props.error ? "border-terracotta" : "border-ink/10"
         } ${props.big ? "text-center font-heading text-3xl font-extrabold tracking-[0.5em]" : ""}`}
       />

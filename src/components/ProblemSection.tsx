@@ -31,7 +31,7 @@ export default function ProblemSection({ t }: Props) {
             const Icon = icons[i];
             return (
               <FadeIn key={card.title} delay={i * 0.1}>
-                <article className="h-full rounded-3xl bg-white p-6 shadow-sm shadow-ink/5 transition-shadow hover:shadow-md">
+                <article className="h-full rounded-3xl bg-surface p-6 shadow-sm shadow-ink/5 transition-shadow hover:shadow-md">
                   <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-terracotta/10 text-terracotta">
                     <Icon size={22} aria-hidden />
                   </span>

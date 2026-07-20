@@ -34,7 +34,7 @@ export default function FAQ({ t }: Props) {
           const isOpen = openIndex === i;
           return (
             <FadeIn key={item.q} delay={i * 0.06}>
-              <div className="overflow-hidden rounded-2xl bg-white shadow-sm shadow-ink/5">
+              <div className="overflow-hidden rounded-2xl bg-surface shadow-sm shadow-ink/5">
                 {/* Кнопка-вопрос. aria-expanded сообщает скринридерам, открыт ли ответ */}
                 <button
                   type="button"

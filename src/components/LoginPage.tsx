@@ -76,7 +76,7 @@ export default function LoginPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
-          className="w-full max-w-md rounded-3xl bg-white p-8 shadow-xl shadow-ink/5 sm:p-10"
+          className="w-full max-w-md rounded-3xl bg-surface p-8 shadow-xl shadow-ink/5 sm:p-10"
         >
           <h1 className="font-heading text-3xl font-extrabold">{l.title}</h1>
           <p className="mt-2 text-ink/60">{l.subtitle}</p>

@@ -1,35 +1,127 @@
 /*
-  Главный файл стилей.
-  Здесь подключается Tailwind CSS и задаётся "дизайн-система" проекта:
-  фирменные цвета и шрифты. Дальше в компонентах мы используем их
-  как обычные классы Tailwind: bg-cream, text-terracotta, font-heading и т.д.
+  Дизайн-система Sauda AI v2.
+
+  Две темы через CSS-переменные:
+  - :root                — светлая (по умолчанию): тёплый крем, глубокий зелёный,
+                           приглушённая терракота, бордовый. Настроение — «фермерский
+                           рынок», как в референсе Little Market.
+  - [data-theme="dark"]  — тёмная: глубокий сине-чёрный + тёплый оранжевый.
+                           Оранжевый работает на тёмном, где на белом он был бы кислотным.
+
+  Tailwind-классы (bg-cream, text-ink, bg-terracotta…) привязаны к переменным через
+  @theme inline — темы переключаются на лету атрибутом data-theme на <html>,
+  компоненты ничего не знают о темах.
 */
 @import "tailwindcss";
 
-@theme {
-  /* Фирменная палитра Sauda AI */
-  --color-cream: #faf7f2; /* тёплый кремовый — фон всего сайта */
-  --color-ink: #211e1b; /* почти чёрный — основной текст */
-  --color-terracotta: #c75b39; /* терракота — главный акцент, кнопки */
-  --color-terracotta-dark: #a84a2d; /* терракота потемнее — для hover */
-  --color-forest: #2f5d50; /* глубокий зелёный — второй акцент */
-  --color-beige: #f1eadf; /* бежевый — фон карточек и блоков */
-  --color-sun: #e8b04b; /* тёплый жёлтый — подсветка успеха */
+/* ===== Светлая тема (по умолчанию) ===== */
+:root {
+  --app-bg: #faf6ef;            /* единый тёплый фон страницы — без «швов» */
+  --app-surface: #ffffff;       /* карточки */
+  --app-panel: #f1e9db;         /* мягкие панели-вставки */
+  --app-ink: #262019;           /* тёплый почти-чёрный текст */
+  --app-ink-soft: #6d6357;      /* вторичный текст */
 
-  /* Шрифты (подключены в index.html через Google Fonts) */
+  --app-primary: #b85c38;       /* терракота, приглушённая — не «кислотная» */
+  --app-primary-strong: #9c4a2b;
+  --app-primary-glow: rgba(184, 92, 56, 0.4);
+
+  --app-forest: #2e5947;        /* глубокий зелёный */
+  --app-burgundy: #5b2e35;      /* бордовый — акцентные полосы, как в референсе */
+  --app-sun: #e0a63e;           /* тёплый жёлтый */
+
+  --app-line: rgba(38, 32, 25, 0.1);    /* границы */
+  --app-shadow: rgba(38, 32, 25, 0.12); /* тени */
+}
+
+/* ===== Тёмная тема ===== */
+[data-theme="dark"] {
+  --app-bg: #10151f;            /* глубокий сине-чёрный */
+  --app-surface: #1a2130;
+  --app-panel: #212a3c;
+  --app-ink: #f1ece1;           /* кремовый текст */
+  --app-ink-soft: #a9a294;
+
+  --app-primary: #e07a48;       /* тёплый оранжевый — здесь он на месте */
+  --app-primary-strong: #c9612f;
+  --app-primary-glow: rgba(224, 122, 72, 0.45);
+
+  --app-forest: #57937a;        /* осветлённый зелёный ради контраста */
+  --app-burgundy: #7d434d;
+  --app-sun: #e6b055;
+
+  --app-line: rgba(241, 236, 225, 0.14);
+  --app-shadow: rgba(0, 0, 0, 0.45);
+}
+
+/* ===== Мост в Tailwind: те же имена классов, что были ===== */
+@theme inline {
+  --color-cream: var(--app-bg);
+  --color-surface: var(--app-surface);
+  --color-beige: var(--app-panel);
+  --color-ink: var(--app-ink);
+  --color-ink-soft: var(--app-ink-soft);
+
+  --color-terracotta: var(--app-primary);
+  --color-terracotta-dark: var(--app-primary-strong);
+  --color-forest: var(--app-forest);
+  --color-burgundy: var(--app-burgundy);
+  --color-sun: var(--app-sun);
+  --color-line: var(--app-line);
+
   --font-heading: "Manrope", sans-serif;
   --font-body: "Inter", sans-serif;
 }
 
-/* Базовые настройки страницы */
-body {
-  background-color: var(--color-cream);
-  color: var(--color-ink);
-  font-family: var(--font-body);
-  /* Плавная прокрутка, когда кликаем по пунктам меню */
-  scroll-behavior: smooth;
-}
-
+/* ===== База страницы ===== */
 html {
   scroll-behavior: smooth;
+  /* Чуть крупнее шрифт на телефонах: аудитория — люди в возрасте */
+  font-size: 17px;
+}
+@media (min-width: 768px) {
+  html {
+    font-size: 16px;
+  }
+}
+
+body {
+  background-color: var(--app-bg);
+  color: var(--app-ink);
+  font-family: var(--font-body);
+  transition: background-color 0.35s ease, color 0.35s ease;
+  /* Убираем задержку тапа на мобильных */
+  touch-action: manipulation;
+}
+
+/* ===== Пульсация главной CTA (мягкое «кольцо» раз в ~2 сек) ===== */
+@keyframes btn-pulse-ring {
+  0% {
+    box-shadow: 0 0 0 0 var(--app-primary-glow);
+  }
+  70% {
+    box-shadow: 0 0 0 16px transparent;
+  }
+  100% {
+    box-shadow: 0 0 0 0 transparent;
+  }
+}
+.btn-pulse {
+  animation: btn-pulse-ring 2.2s ease-out infinite;
+}
+
+/* Уважение к reduced-motion: без пульса и плавных прокруток */
+@media (prefers-reduced-motion: reduce) {
+  .btn-pulse {
+    animation: none;
+  }
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+/* ===== Фоновый точечный паттерн (едва заметный, для экранов авторизации) ===== */
+.ornament-bg {
+  background-image: radial-gradient(var(--app-line) 1px, transparent 1px);
+  background-size: 22px 22px;
 }

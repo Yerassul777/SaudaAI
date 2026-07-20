@@ -257,7 +257,7 @@ export default function CreateCardWizard() {
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="rounded-xl bg-white px-4 py-2.5 text-sm font-semibold shadow-sm transition-colors hover:bg-beige"
+                  className="rounded-xl bg-surface px-4 py-2.5 text-sm font-semibold shadow-sm transition-colors hover:bg-beige"
                 >
                   {w.photoRetake}
                 </button>
@@ -266,7 +266,7 @@ export default function CreateCardWizard() {
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="mt-4 flex w-full flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-ink/15 bg-white py-12 font-semibold text-ink/60 transition-colors hover:border-terracotta hover:text-terracotta"
+                className="mt-4 flex w-full flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-ink/15 bg-surface py-12 font-semibold text-ink/60 transition-colors hover:border-terracotta hover:text-terracotta"
               >
                 <Camera size={32} aria-hidden />
                 {w.photoButton}
@@ -308,7 +308,7 @@ export default function CreateCardWizard() {
                 value={freeText}
                 onChange={(e) => setFreeText(e.target.value)}
                 rows={4}
-                className="mt-4 w-full rounded-xl border-2 border-forest/30 bg-white px-4 py-3 leading-relaxed outline-none focus:border-forest"
+                className="mt-4 w-full rounded-xl border-2 border-forest/30 bg-surface px-4 py-3 leading-relaxed outline-none focus:border-forest"
               />
             )}
 

@@ -50,7 +50,7 @@ export default function BeforeAfter({ t }: Props) {
 
         {/* ===== ПОСЛЕ: тепло и продающе ===== */}
         <FadeIn delay={0.25}>
-          <article className="rounded-3xl bg-white p-6 shadow-xl shadow-ink/10">
+          <article className="rounded-3xl bg-surface p-6 shadow-xl shadow-ink/10">
             <span className="inline-flex items-center gap-1.5 rounded-full bg-sun/25 px-3 py-1 text-xs font-semibold text-ink">
               <Sparkles size={14} className="text-terracotta" aria-hidden />
               {t.beforeAfter.afterLabel}

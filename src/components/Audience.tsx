@@ -35,7 +35,7 @@ export default function Audience({ t }: Props) {
             const { icon: Icon, bg, color } = personaStyle[i];
             return (
               <FadeIn key={persona.title} delay={i * 0.12}>
-                <article className="h-full rounded-3xl bg-white p-7 text-center shadow-sm shadow-ink/5 transition-shadow hover:shadow-md">
+                <article className="h-full rounded-3xl bg-surface p-7 text-center shadow-sm shadow-ink/5 transition-shadow hover:shadow-md">
                   {/* Круг-аватар вместо фото */}
                   <span
                     className={`mx-auto flex h-20 w-20 items-center justify-center rounded-full ${bg} ${color}`}

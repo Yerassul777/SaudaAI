@@ -159,7 +159,7 @@ export default function CardResult({
             { label: r.kzBlock, title: card.title_kz, text: card.description_kz },
           ] as const
         ).map((block) => (
-          <div key={block.label} className="rounded-2xl bg-white p-6 shadow-sm">
+          <div key={block.label} className="rounded-2xl bg-surface p-6 shadow-sm">
             <p className="text-xs font-bold uppercase tracking-wide text-ink/40">
               {block.label}
             </p>
@@ -197,7 +197,7 @@ export default function CardResult({
               value={priceInput}
               onChange={(e) => setPriceInput(e.target.value.replace(/\D/g, ""))}
               placeholder={r.priceInputPlaceholder}
-              className="w-full rounded-xl border-2 border-ink/15 bg-white px-4 py-3 text-lg font-semibold outline-none focus:border-forest sm:max-w-[220px]"
+              className="w-full rounded-xl border-2 border-ink/15 bg-surface px-4 py-3 text-lg font-semibold outline-none focus:border-forest sm:max-w-[220px]"
             />
             <button
               type="button"
@@ -271,7 +271,7 @@ export default function CardResult({
         <button
           type="button"
           onClick={() => copyText("card")}
-          className="flex items-center justify-center gap-2 rounded-xl bg-white px-6 py-3.5 font-semibold shadow-sm transition-colors hover:bg-beige"
+          className="flex items-center justify-center gap-2 rounded-xl bg-surface px-6 py-3.5 font-semibold shadow-sm transition-colors hover:bg-beige"
         >
           {copied === "card" ? <Check size={18} className="text-forest" aria-hidden /> : <Copy size={18} aria-hidden />}
           {copied === "card" ? r.copied : r.copy}
@@ -280,7 +280,7 @@ export default function CardResult({
         <button
           type="button"
           onClick={() => copyText("post")}
-          className="flex items-center justify-center gap-2 rounded-xl bg-white px-6 py-3.5 font-semibold shadow-sm transition-colors hover:bg-beige"
+          className="flex items-center justify-center gap-2 rounded-xl bg-surface px-6 py-3.5 font-semibold shadow-sm transition-colors hover:bg-beige"
         >
           {copied === "post" ? <Check size={18} className="text-forest" aria-hidden /> : <MessageCircle size={18} aria-hidden />}
           {copied === "post" ? r.postCopied : r.postBtn}
@@ -290,7 +290,7 @@ export default function CardResult({
           type="button"
           onClick={handleMakePhoto}
           disabled={imageState === "working"}
-          className="flex items-center justify-center gap-2 rounded-xl bg-white px-6 py-3.5 font-semibold shadow-sm transition-colors hover:bg-beige disabled:cursor-wait disabled:opacity-60"
+          className="flex items-center justify-center gap-2 rounded-xl bg-surface px-6 py-3.5 font-semibold shadow-sm transition-colors hover:bg-beige disabled:cursor-wait disabled:opacity-60"
         >
           <ImagePlus size={18} aria-hidden />
           {imageState === "working" ? r.makingPhoto : r.makePhotoBtn}

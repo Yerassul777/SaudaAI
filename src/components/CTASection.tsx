@@ -30,7 +30,7 @@ export default function CTASection({ t, onRegister }: Props) {
           <button
             type="button"
             onClick={onRegister}
-            className="relative mt-8 inline-flex items-center gap-2 rounded-xl bg-white px-8 py-4 font-semibold text-terracotta shadow-lg transition-all hover:-translate-y-0.5 hover:shadow-xl"
+            className="relative mt-8 inline-flex items-center gap-2 rounded-xl bg-surface px-8 py-4 font-semibold text-terracotta shadow-lg transition-all hover:-translate-y-0.5 hover:shadow-xl"
           >
             {t.cta.button}
             <ArrowRight size={18} aria-hidden />

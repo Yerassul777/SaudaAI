@@ -1,12 +1,10 @@
 /*
-  Два глобальных контекста приложения:
+  Три глобальных контекста приложения:
 
   1. LangContext — выбранный язык (ru/kz) и словарь текстов t.
-     Раньше язык жил в App и передавался пропами; с появлением роутера
-     и десятка экранов контекст избавляет от «протаскивания» пропов.
-
-  2. AuthContext — текущая сессия Supabase. Подписываемся на изменения
-     один раз здесь, а любой экран узнаёт пользователя через useAuth().
+  2. AuthContext — текущая сессия Supabase.
+  3. ThemeContext — светлая/тёмная тема. Ставит data-theme на <html>,
+     CSS-переменные в index.css делают остальное. Выбор живёт в localStorage.
 */
 import {
   createContext,
@@ -54,12 +52,43 @@ export function useAuth(): AuthValue {
   return value;
 }
 
+/* ===== Тема ===== */
+
+type Theme = "light" | "dark";
+
+type ThemeValue = {
+  theme: Theme;
+  setTheme: (theme: Theme) => void;
+};
+
+const ThemeContext = createContext<ThemeValue | null>(null);
+
+export function useTheme(): ThemeValue {
+  const value = useContext(ThemeContext);
+  if (!value) throw new Error("useTheme можно вызывать только внутри <AppProviders>");
+  return value;
+}
+
 /* ===== Провайдер ===== */
 
 export function AppProviders({ children }: { children: ReactNode }) {
   const [lang, setLang] = useState<Lang>("ru");
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [theme, setThemeState] = useState<Theme>(() => {
+    // Сохранённый выбор пользователя; по умолчанию светлая
+    return localStorage.getItem("sauda-theme") === "dark" ? "dark" : "light";
+  });
+
+  // Атрибут на <html> — переключает все CSS-переменные разом
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", theme);
+  }, [theme]);
+
+  const setTheme = (next: Theme) => {
+    localStorage.setItem("sauda-theme", next);
+    setThemeState(next);
+  };
 
   useEffect(() => {
     // Поднимаем сессию из localStorage при загрузке страницы
@@ -88,7 +117,9 @@ export function AppProviders({ children }: { children: ReactNode }) {
 
   return (
     <LangContext.Provider value={{ lang, setLang, t: content[lang] }}>
-      <AuthContext.Provider value={authValue}>{children}</AuthContext.Provider>
+      <ThemeContext.Provider value={{ theme, setTheme }}>
+        <AuthContext.Provider value={authValue}>{children}</AuthContext.Provider>
+      </ThemeContext.Provider>
     </LangContext.Provider>
   );
 }

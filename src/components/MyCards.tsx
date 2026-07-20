@@ -147,7 +147,7 @@ export default function MyCards() {
                 <motion.li
                   key={card.id}
                   layout
-                  className="overflow-hidden rounded-2xl bg-white shadow-sm"
+                  className="overflow-hidden rounded-2xl bg-surface shadow-sm"
                 >
                   <button
                     type="button"
@@ -224,7 +224,7 @@ export default function MyCards() {
                                 setPriceInput(e.target.value.replace(/\D/g, ""))
                               }
                               placeholder={r.priceInputPlaceholder}
-                              className="w-full rounded-lg border-2 border-ink/15 bg-white px-3 py-2 font-semibold outline-none focus:border-forest sm:max-w-[180px]"
+                              className="w-full rounded-lg border-2 border-ink/15 bg-surface px-3 py-2 font-semibold outline-none focus:border-forest sm:max-w-[180px]"
                             />
                             <button
                               type="button"
@@ -251,7 +251,7 @@ export default function MyCards() {
                                 );
                                 setEditingId(card.id);
                               }}
-                              className="flex items-center gap-1.5 rounded-lg bg-white px-3 py-1.5 text-sm font-semibold transition-colors hover:bg-sun/30"
+                              className="flex items-center gap-1.5 rounded-lg bg-surface px-3 py-1.5 text-sm font-semibold transition-colors hover:bg-sun/30"
                             >
                               <Pencil size={14} aria-hidden />
                               {c.edit}

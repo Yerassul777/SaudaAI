@@ -1,0 +1,268 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8" />
+<title>Sauda AI — Pitch Deck</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  /*
+    Pitch deck Sauda AI. 12 слайдов 16:9.
+    Печать в PDF: Ctrl+P → «Сохранить как PDF» → альбомная, поля «Нет», фон — вкл.
+  */
+  :root {
+    --bg: #faf6ef; --ink: #262019; --soft: #6d6357;
+    --terra: #b85c38; --forest: #2e5947; --burgundy: #5b2e35; --sun: #e0a63e;
+    --dark: #10151f;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: "Inter", sans-serif; background: #333; color: var(--ink); }
+  .slide {
+    width: 1280px; height: 720px; margin: 24px auto; padding: 64px 72px;
+    background: var(--bg); position: relative; overflow: hidden;
+    display: flex; flex-direction: column;
+    page-break-after: always;
+  }
+  @media print {
+    body { background: none; }
+    .slide { margin: 0; box-shadow: none; }
+    @page { size: 1280px 720px; margin: 0; }
+  }
+  h1, h2, h3, .num { font-family: "Manrope", sans-serif; }
+  h1 { font-size: 64px; font-weight: 800; line-height: 1.1; letter-spacing: -1px; }
+  h2 { font-size: 44px; font-weight: 800; line-height: 1.15; letter-spacing: -0.5px; }
+  h3 { font-size: 22px; font-weight: 700; }
+  p, li { font-size: 21px; line-height: 1.55; color: var(--soft); }
+  strong { color: var(--ink); }
+  .tag { display: inline-block; background: var(--terra); color: #fff; font-weight: 700;
+    font-size: 16px; padding: 7px 18px; border-radius: 999px; letter-spacing: 0.4px; }
+  .foot { position: absolute; bottom: 28px; left: 72px; right: 72px;
+    display: flex; justify-content: space-between; font-size: 15px; color: var(--soft); }
+  .cols { display: flex; gap: 36px; margin-top: 40px; }
+  .col { flex: 1; }
+  .card { background: #fff; border-radius: 22px; padding: 28px; box-shadow: 0 4px 20px rgba(38,32,25,.08); }
+  .card h3 { margin-bottom: 10px; }
+  .card p { font-size: 18px; }
+  .big { font-family: "Manrope"; font-size: 56px; font-weight: 800; color: var(--forest); }
+  .big + p { font-size: 17px; margin-top: 4px; }
+  .accent { color: var(--terra); }
+  ul.clean { list-style: none; }
+  ul.clean li { padding-left: 34px; position: relative; margin-bottom: 16px; }
+  ul.clean li::before { content: "●"; color: var(--terra); position: absolute; left: 6px; font-size: 14px; top: 7px; }
+  .band { background: var(--burgundy); color: #fff; }
+  .band p, .band li { color: rgba(255,255,255,.85); }
+  .band h2, .band strong { color: #fff; }
+  .dark-slide { background: var(--dark); color: #f1ece1; }
+  .dark-slide p, .dark-slide li { color: rgba(241,236,225,.75); }
+  .dark-slide h1, .dark-slide h2, .dark-slide strong { color: #f1ece1; }
+  .flow { display: flex; align-items: center; gap: 14px; margin-top: 44px; }
+  .flow .step { background: #fff; border-radius: 18px; padding: 22px 24px; flex: 1;
+    box-shadow: 0 4px 16px rgba(38,32,25,.08); }
+  .flow .step .num { font-size: 30px; font-weight: 800; color: var(--terra); }
+  .flow .step p { font-size: 17px; margin-top: 6px; }
+  .flow .arr { font-size: 30px; color: var(--terra); font-weight: 800; }
+  .kv { display: flex; gap: 48px; margin-top: 44px; }
+  .shot { border-radius: 18px; border: 2px solid rgba(184,92,56,.35); max-height: 420px; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 36px; }
+  code { font-size: 18px; background: rgba(46,89,71,.1); color: var(--forest);
+    padding: 2px 10px; border-radius: 8px; font-weight: 600; }
+</style>
+</head>
+<body>
+
+<!-- 1. Титул -->
+<section class="slide" style="justify-content:center; text-align:center; align-items:center;">
+  <span class="tag">Tech Vision 2026 · Digital Economy &amp; Future Tech · Local Commerce</span>
+  <h1 style="margin-top:36px; max-width:900px;">Sauda AI</h1>
+  <h2 style="margin-top:18px; font-weight:700; color:var(--terra); max-width:880px;">Фото товара → готовая карточка за 10 секунд</h2>
+  <p style="margin-top:26px; font-size:24px;">Сервис для мастеров и фермеров Казахстана</p>
+  <p style="margin-top:44px; font-size:19px;"><strong>sauda-ai.vercel.app</strong> · github.com/Yerassul777/SaudaAI · @saudaai2026</p>
+</section>
+
+<!-- 2. Проблема -->
+<section class="slide">
+  <span class="tag" style="background:var(--burgundy);">Проблема · один пользователь — одна боль</span>
+  <h2 style="margin-top:28px; max-width:1000px;">Мастер делает отличный товар.<br/>Продать его онлайн — отдельная профессия, которой у него нет.</h2>
+  <div class="cols">
+    <div class="col card">
+      <h3>«Продам мёд, звоните»</h3>
+      <p>Типичная карточка на казахстанских досках: два сухих предложения, тёмное фото. Покупатель листает дальше.</p>
+    </div>
+    <div class="col card">
+      <h3>Цена наугад</h3>
+      <p>Дорого — не купят, дёшево — в минус. Рыночных ориентиров у продавца нет.</p>
+    </div>
+    <div class="col card">
+      <h3>Два языка, ноль времени</h3>
+      <p>Покупатели ищут на казахском и русском. Утром рынок, вечером семья — писать тексты некогда.</p>
+    </div>
+  </div>
+  <p style="margin-top:34px; font-size:22px;"><strong>Наш пользователь:</strong> сельский мастер или фермер 45+, который умеет делать — и не умеет (и боится) продавать в интернете.</p>
+  <div class="foot"><span>Sauda AI · Tech Vision 2026</span><span>2</span></div>
+</section>
+
+<!-- 3. Цифры -->
+<section class="slide band">
+  <h2 style="margin-top:8px;">Боль — массовая и измеримая</h2>
+  <div class="kv">
+    <div><div class="big" style="color:var(--sun);">2,37 млн</div><p>субъектов МСП в Казахстане, ~70% — ИП (Минторговли РК)</p></div>
+    <div><div class="big" style="color:var(--sun);">×4,8</div><p>рост продаж предприятия через 1,5 года после выхода на маркетплейс</p></div>
+    <div><div class="big" style="color:var(--sun);">72% / 32%</div><p>пользуются банковскими приложениями: города против сёл ВКО и Жамбылской области — цифровой разрыв</p></div>
+  </div>
+  <p style="margin-top:52px; font-size:23px; max-width:1000px;">Разрыв — не в желании продавать, а в навыках и инфраструктуре выхода на цифровой рынок. Ровно это чинит Sauda AI.</p>
+  <div class="foot" style="color:rgba(255,255,255,.5);"><span>Sauda AI · Tech Vision 2026</span><span>3</span></div>
+</section>
+
+<!-- 4. Решение -->
+<section class="slide">
+  <span class="tag">Решение</span>
+  <h2 style="margin-top:26px;">Одна фотография и три ответа — можно голосом</h2>
+  <div class="flow">
+    <div class="step"><span class="num">1</span><p><strong>Фото на телефон.</strong> Стол на кухне вместо фотостудии — подойдёт.</p></div>
+    <span class="arr">→</span>
+    <div class="step"><span class="num">2</span><p><strong>Три вопроса — или голосом.</strong> Что это, из чего, для кого. ИИ понимает казахский и русский.</p></div>
+    <span class="arr">→</span>
+    <div class="step"><span class="num">3</span><p><strong>Готовая карточка.</strong> Заголовок и описание RU+KZ, теги, цена с объяснением, пост для WhatsApp, студийное фото.</p></div>
+  </div>
+  <div class="grid2">
+    <div class="card"><h3>Вход: номер + ПИН из 4 цифр</h3><p>Как банковская карта. Без почты, паролей и SMS — ноль барьеров для человека 60 лет.</p></div>
+    <div class="card"><h3>Экспорт в один тап</h3><p>Готовые форматы под Kaspi, OLX, Wildberries и WhatsApp — куда продавец уже ходит.</p></div>
+  </div>
+  <div class="foot"><span>Sauda AI · Tech Vision 2026</span><span>4</span></div>
+</section>
+
+<!-- 5. Не только генератор -->
+<section class="slide">
+  <span class="tag" style="background:var(--forest);">Больше, чем генератор</span>
+  <h2 style="margin-top:26px;">Мы не делаем карточку за продавца — мы делаем продавца</h2>
+  <div class="cols">
+    <div class="col card">
+      <h3>📖 Научиться продавать</h3>
+      <p>Пошаговые уроки «как для пятилетнего»: Kaspi, OLX, Wildberries, переписка с покупателем. После каждого — квиз с мгновенным разбором. Ноль затрат на ИИ: всё статическое.</p>
+    </div>
+    <div class="col card">
+      <h3>🏪 Тренажёр маркетплейса</h3>
+      <p>Симулятор: продавец «выставляет товар» в интерфейсе площадки и отвечает на вопросы виртуального покупателя («Торг уместен?», «Почему так дорого?»). В конце ИИ разбирает переписку: оценка, что получилось, один совет. Прогресс копится в профиле.</p>
+    </div>
+  </div>
+  <p style="margin-top:36px; font-size:22px;"><strong>Итог:</strong> продукт закрывает весь путь — от «боюсь интернета» до «продаю на трёх площадках сам».</p>
+  <div class="foot"><span>Sauda AI · Tech Vision 2026</span><span>5</span></div>
+</section>
+
+<!-- 6. Архитектура -->
+<section class="slide dark-slide">
+  <span class="tag">Технология</span>
+  <h2 style="margin-top:26px;">Многошаговая ИИ-цепочка, а не обёртка над API</h2>
+  <div class="cols" style="margin-top:34px;">
+    <div class="col">
+      <ul class="clean">
+        <li><strong>Зрение</strong> (gpt-4o): извлекает из фото структуру — категория, цвета, видимые материалы, уверенность в распознавании. Смотрит на фото независимо от слов продавца.</li>
+        <li><strong>Ценовой якорь</strong> (алгоритм): рыночные диапазоны 12 категорий в Postgres — модель не фантазирует цену с потолка, сервер зажимает её в диапазон.</li>
+        <li><strong>Копирайтинг</strong> (gpt-4o-mini): тексты RU+KZ по строгим правилам источников: суть — от продавца, вид — с фото.</li>
+        <li><strong>Голос</strong> (whisper-1) и <strong>студийное фото</strong> (gpt-image-1).</li>
+      </ul>
+    </div>
+    <div class="col">
+      <ul class="clean">
+        <li><strong>Стек:</strong> React 19 + Vite + Tailwind v4 · Supabase (Postgres, RLS, Storage, Edge Functions/Deno) · Vercel.</li>
+        <li><strong>Безопасность:</strong> ключи ИИ только на сервере; каждый видит только свои данные (RLS); перебор ПИНа блокируется сервером.</li>
+        <li><strong>Честный ИИ:</strong> не выдумывает модель, материалы и цену. Не уверен — прямо просит продавца уточнить.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="foot" style="color:rgba(241,236,225,.45);"><span>Sauda AI · Tech Vision 2026</span><span>6</span></div>
+</section>
+
+<!-- 7. Демо -->
+<section class="slide">
+  <span class="tag">Живой продукт</span>
+  <h2 style="margin-top:26px;">Всё, что на этих слайдах, уже работает в проде</h2>
+  <div class="cols" style="align-items:center;">
+    <div class="col">
+      <ul class="clean">
+        <li>Рабочее демо: <strong>sauda-ai.vercel.app</strong></li>
+        <li>Полный цикл: регистрация → карточка → цена → пост → экспорт</li>
+        <li>Две темы (светлая/тёмная), интерфейс RU/KZ</li>
+        <li>Mobile-first: 90% нашей аудитории — с телефона</li>
+        <li>Открытый код и история коммитов: <strong>github.com/Yerassul777/SaudaAI</strong></li>
+      </ul>
+    </div>
+    <div class="col" style="text-align:center;">
+      <img class="shot" src="../public/demo/honey.jpg" alt="Студийное фото, сделанное Sauda AI" />
+      <p style="font-size:16px; margin-top:10px;">Это фото сгенерировано нашей же функцией «студийное фото» — сайт оформлен собственным продуктом.</p>
+    </div>
+  </div>
+  <div class="foot"><span>Sauda AI · Tech Vision 2026</span><span>7</span></div>
+</section>
+
+<!-- 8. Бизнес-модель -->
+<section class="slide">
+  <span class="tag" style="background:var(--sun); color:var(--ink);">Бизнес-модель</span>
+  <h2 style="margin-top:26px;">Freemium с копеечной себестоимостью</h2>
+  <div class="cols">
+    <div class="col card">
+      <h3>Cost Structure</h3>
+      <p>Себестоимость одной карточки — токены ИИ: <strong>≈ 10–20 ₸</strong>. Хостинг и база — бесплатные тарифы до тысяч пользователей. Студийное фото — ≈ 40 ₸ за генерацию.</p>
+    </div>
+    <div class="col card">
+      <h3>Revenue Streams</h3>
+      <p><strong>Бесплатно:</strong> первые 3 карточки — попробовать без риска.<br/><strong>Тариф ≈ 1 490 ₸/мес:</strong> безлимит карточек, студийные фото, тренажёр.<br/>Дальше: партнёрки с площадками и обучающие курсы.</p>
+    </div>
+    <div class="col card">
+      <h3>Юнит-экономика</h3>
+      <p>Активный продавец делает 10–30 карточек в месяц: себестоимость ≈ 300–600 ₸ при чеке 1 490 ₸. Маржа положительная с первого платящего пользователя.</p>
+    </div>
+  </div>
+  <div class="foot"><span>Sauda AI · Tech Vision 2026</span><span>8</span></div>
+</section>
+
+<!-- 9. Почему мы -->
+<section class="slide band">
+  <h2 style="margin-top:8px;">Почему это сработает именно в Казахстане</h2>
+  <ul class="clean" style="margin-top:40px; max-width:1050px;">
+    <li><strong>Двуязычие из коробки.</strong> Карточка сразу на казахском и русском — глобальные аналоги этого не делают.</li>
+    <li><strong>UX для старшего поколения.</strong> Вход «номер + ПИН как на карте», голос вместо клавиатуры, кнопки как в банкомате. Аудитория, которую все игнорируют.</li>
+    <li><strong>Локальные каналы продаж.</strong> Экспорт под Kaspi, OLX, WB и WhatsApp-статусы — так реально продают в регионах.</li>
+    <li><strong>Обучение внутри продукта.</strong> Уроки и тренажёр превращают «страшный интернет» в понятный навык.</li>
+  </ul>
+  <div class="foot" style="color:rgba(255,255,255,.5);"><span>Sauda AI · Tech Vision 2026</span><span>9</span></div>
+</section>
+
+<!-- 10. Дорожная карта -->
+<section class="slide">
+  <span class="tag">Дорожная карта</span>
+  <h2 style="margin-top:26px;">От MVP к инфраструктуре локальной коммерции</h2>
+  <div class="flow" style="margin-top:48px;">
+    <div class="step"><span class="num">Сейчас</span><p>Рабочий MVP в проде: карточки, цена, голос, фото, обучение, тренажёр, экспорт.</p></div>
+    <span class="arr">→</span>
+    <div class="step"><span class="num">3 мес</span><p>Пилот с ремесленными сообществами и акиматами регионов; SMS-подтверждение; публикация на площадки по API.</p></div>
+    <span class="arr">→</span>
+    <div class="step"><span class="num">12 мес</span><p>Каталог-витрина локальных мастеров, партнёрства с Kaspi/OLX, обучающая программа для сёл.</p></div>
+  </div>
+  <div class="foot"><span>Sauda AI · Tech Vision 2026</span><span>10</span></div>
+</section>
+
+<!-- 11. Команда -->
+<section class="slide">
+  <span class="tag" style="background:var(--forest);">Команда</span>
+  <h2 style="margin-top:26px;">Sauda AI Team</h2>
+  <div class="cols">
+    <div class="col card" style="max-width:520px;">
+      <h3>Ерасыл (Yerassul)</h3>
+      <p>Продукт, разработка, ИИ-архитектура. Идея выросла из реальной боли: близкие продают на рынке и не могут выйти в онлайн.</p>
+    </div>
+  </div>
+  <p style="margin-top:40px; font-size:21px;">Разработано с использованием ИИ-инструментов — и мы полностью понимаем и защищаем каждую строку кода (AI-комплаенс хакатона).</p>
+  <div class="foot"><span>Sauda AI · Tech Vision 2026</span><span>11</span></div>
+</section>
+
+<!-- 12. Финал -->
+<section class="slide dark-slide" style="justify-content:center; text-align:center; align-items:center;">
+  <h1 style="max-width:980px;">Хороший товар не должен теряться из-за пустой карточки</h1>
+  <p style="margin-top:34px; font-size:26px;">Sauda AI — карточка, цена и навык продаж из одной фотографии.</p>
+  <p style="margin-top:48px; font-size:22px;"><strong style="color:#e07a48;">sauda-ai.vercel.app</strong> · github.com/Yerassul777/SaudaAI · @saudaai2026</p>
+</section>
+
+</body>
+</html>

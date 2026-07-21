@@ -94,6 +94,13 @@ body {
   touch-action: manipulation;
 }
 
+/* Сайт никогда не скроллится вбок: декор и тени не расширяют страницу */
+html,
+body {
+  overflow-x: clip;
+  max-width: 100%;
+}
+
 /* ===== Пульсация главной CTA (мягкое «кольцо» раз в ~2 сек) ===== */
 @keyframes btn-pulse-ring {
   0% {

@@ -53,7 +53,7 @@ export default function Hero({ t, onRegister }: Props) {
           </div>
 
           {/* Метрики доверия */}
-          <dl className="mt-10 flex gap-10">
+          <dl className="mt-10 flex flex-wrap gap-6 sm:gap-10">
             <div>
               <dt className="sr-only">{t.hero.metric1Label}</dt>
               <dd className="font-heading text-3xl font-extrabold text-forest">
@@ -76,14 +76,11 @@ export default function Hero({ t, onRegister }: Props) {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.15 }}
-          className="relative mx-auto w-full max-w-sm"
+          className="mx-auto w-full max-w-sm"
         >
-          <div
-            aria-hidden
-            className="absolute -inset-6 rotate-3 rounded-[32px] bg-terracotta/10"
-          />
-
-          <div className="relative rounded-3xl bg-surface p-5 shadow-xl shadow-ink/10">
+          {/* Мягкая терракотовая обводка вместо косой подложки:
+              цвет берётся из темы, /35 приглушает яркость */}
+          <div className="rounded-3xl border-2 border-terracotta/35 bg-surface p-5 shadow-xl shadow-ink/10">
             {/* Настоящее фото — сделано нашей же функцией «студийное фото» */}
             <img
               src="/demo/honey.jpg"

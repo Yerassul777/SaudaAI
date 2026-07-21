@@ -180,10 +180,8 @@ const ru = {
 
   footer: {
     about: "Sauda AI помогает мастерам и фермерам Казахстана продавать онлайн: готовая карточка товара из одного фото.",
-    productTitle: "Продукт",
-    productLinks: ["Как это работает", "Возможности", "Тарифы"],
-    companyTitle: "Компания",
-    companyLinks: ["О нас", "Контакты", "Блог"],
+    sectionsTitle: "Разделы",
+    aboutUs: "О нас",
     socialTitle: "Мы на связи",
     copyright: "© 2026 Sauda AI. Все права защищены.",
   },
@@ -547,10 +545,8 @@ const kz: typeof ru = {
 
   footer: {
     about: "Sauda AI Қазақстан шеберлері мен фермерлеріне онлайн сатуға көмектеседі: бір фотодан дайын тауар карточкасы.",
-    productTitle: "Өнім",
-    productLinks: ["Қалай жұмыс істейді", "Мүмкіндіктер", "Тарифтер"],
-    companyTitle: "Компания",
-    companyLinks: ["Біз туралы", "Байланыс", "Блог"],
+    sectionsTitle: "Бөлімдер",
+    aboutUs: "Біз туралы",
     socialTitle: "Біз байланыстамыз",
     copyright: "© 2026 Sauda AI. Барлық құқықтар қорғалған.",
   },

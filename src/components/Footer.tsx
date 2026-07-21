@@ -1,5 +1,26 @@
-import { Sparkles, Instagram } from "lucide-react";
+import { Sparkles } from "lucide-react";
 import type { Content } from "../content";
+
+/* Иконка Instagram своим SVG: lucide убрал фирменные логотипы соцсетей */
+function InstagramIcon({ size = 20 }: { size?: number }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+      <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+      <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
+    </svg>
+  );
+}
 
 /*
   Footer — подвал. Бордовый фон работает в обеих темах (бело-кремовый текст
@@ -76,7 +97,7 @@ export default function Footer({ t }: Props) {
               aria-label="Instagram"
               className="mt-4 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-white/10 text-white/80 transition-colors hover:bg-terracotta hover:text-white"
             >
-              <Instagram size={20} aria-hidden />
+              <InstagramIcon size={20} />
             </a>
           </div>
         </div>

@@ -24,6 +24,7 @@ import HandoffSheet from "./HandoffSheet";
 import { formatForMarketplace, type ExportTarget } from "../lib/exportFormats";
 import { whatsappShareUrl } from "../lib/marketplaceLinks";
 import { formatDate } from "../lib/dates";
+import { uniqueHashtags } from "../lib/tags";
 
 /*
   MyCards — сохранённые карточки. Карточка раскрывается по нажатию; внутри —
@@ -227,14 +228,27 @@ export default function MyCards() {
                       <p className="mt-4 leading-relaxed text-ink/70">
                         {lang === "kz" ? card.description_kz : card.description_ru}
                       </p>
+                      {/* Тег копируется по нажатию: на телефоне выделить его
+                          пальцем почти невозможно */}
                       <div className="mt-3 flex flex-wrap gap-2">
-                        {(card.tags ?? []).map((tag) => (
-                          <span
+                        {uniqueHashtags(card.tags).map((tag) => (
+                          <button
                             key={tag}
-                            className="rounded-full bg-beige px-3 py-1 text-sm text-ink/70"
+                            type="button"
+                            onClick={() => copyText(`${card.id}-${tag}`, tag)}
+                            title={r.copyTag}
+                            aria-label={`${r.copyTag}: ${tag}`}
+                            className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm transition-colors ${
+                              copied === `${card.id}-${tag}`
+                                ? "bg-forest text-white"
+                                : "bg-beige text-ink/70 hover:bg-sun/30"
+                            }`}
                           >
-                            #{tag.replace(/\s+/g, "")}
-                          </span>
+                            {copied === `${card.id}-${tag}` && (
+                              <Check size={14} aria-hidden />
+                            )}
+                            {tag}
+                          </button>
                         ))}
                       </div>
 

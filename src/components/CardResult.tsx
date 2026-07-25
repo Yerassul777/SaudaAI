@@ -17,6 +17,7 @@ import {
 } from "../lib/api";
 import { formatForMarketplace, type ExportTarget } from "../lib/exportFormats";
 import { whatsappShareUrl } from "../lib/marketplaceLinks";
+import { uniqueHashtags } from "../lib/tags";
 import HandoffSheet from "./HandoffSheet";
 
 /*
@@ -89,6 +90,13 @@ export default function CardResult({
     );
     setCopied(kind);
     setTimeout(() => setCopied(null), 2500);
+  }
+
+  /** Один тег в буфер обмена. */
+  async function copyTag(tag: string) {
+    await navigator.clipboard.writeText(tag);
+    setCopied(tag);
+    setTimeout(() => setCopied(null), 2000);
   }
 
   /** Текст в формате площадки (форматируется на клиенте, без вызова ИИ) */
@@ -202,15 +210,23 @@ export default function CardResult({
       </div>
 
       {/* Теги */}
+      {/* Тег копируется по нажатию: на телефоне выделить его пальцем почти невозможно */}
       <div className="mt-4 flex flex-wrap items-center gap-2">
         <Tag size={16} className="text-ink/40" aria-hidden />
-        {card.tags.map((tag) => (
-          <span
+        {uniqueHashtags(card.tags).map((tag) => (
+          <button
             key={tag}
-            className="rounded-full bg-beige px-3 py-1 text-sm font-medium text-ink/70"
+            type="button"
+            onClick={() => copyTag(tag)}
+            title={r.copyTag}
+            aria-label={`${r.copyTag}: ${tag}`}
+            className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
+              copied === tag ? "bg-forest text-white" : "bg-beige text-ink/70 hover:bg-sun/30"
+            }`}
           >
-            #{tag.replace(/\s+/g, "")}
-          </span>
+            {copied === tag && <Check size={14} aria-hidden />}
+            {tag}
+          </button>
         ))}
       </div>
 

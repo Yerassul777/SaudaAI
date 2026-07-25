@@ -29,6 +29,7 @@ import Dashboard from "./components/Dashboard";
 import CreateCardWizard from "./components/CreateCardWizard";
 import MyCards from "./components/MyCards";
 import Profile from "./components/Profile";
+import Progress from "./components/Progress";
 import Learn from "./components/Learn";
 import Practice from "./components/Practice";
 import PracticeSession from "./components/PracticeSession";
@@ -107,6 +108,7 @@ export default function App() {
             <Route path="/app/new" element={<CreateCardWizard />} />
             <Route path="/app/cards" element={<MyCards />} />
             <Route path="/app/profile" element={<Profile />} />
+            <Route path="/app/progress" element={<Progress />} />
             <Route path="/app/learn" element={<Learn />} />
             <Route path="/app/practice" element={<Practice />} />
             <Route path="/app/practice/:market" element={<PracticeSession />} />

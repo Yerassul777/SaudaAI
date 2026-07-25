@@ -1,25 +1,30 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Send, Sparkles, Trophy } from "lucide-react";
+import { ArrowLeft, Check, Lightbulb, Send, Sparkles, Trophy } from "lucide-react";
 import { motion } from "framer-motion";
 import { useAuth, useLang } from "../context/AppContext";
 import { markets } from "../data/practice";
 import { buyerQuestions } from "../data/practice";
+import { marketplaceForms } from "../data/marketplaceForms";
 import {
   getPracticeFeedback,
   savePracticeSession,
+  type PracticeFeedback,
 } from "../lib/api";
 import AppHeader from "./AppHeader";
-import Field from "./Field";
+import MarketForm from "./MarketForm";
 
 /*
-  PracticeSession — сама тренировка на выбранной площадке, две фазы:
+  PracticeSession — тренировка на выбранной площадке, четыре фазы:
 
-  1. «Выставьте товар» — упрощённая форма в духе интерфейса площадки
-     (проверки — простыми правилами, без ИИ).
-  2. «Покупатель пишет» — чат: заготовленные вопросы по очереди,
-     пользователь отвечает. В конце ОДИН вызов ИИ разбирает всю переписку:
-     оценка, что получилось, совет. Сессия сохраняется в базу.
+  1. «Выставьте товар» — форма конкретной площадки. У Kaspi, OLX и Wildberries
+     разные поля и разный порядок шагов, поэтому форма собирается по схеме
+     из data/marketplaceForms.ts, а не одна на всех.
+  2. «Посмотрим объявление» — разбор заполненного по правилам площадки.
+     Считается на клиенте обычными правилами: мгновенно и без затрат на ИИ.
+  3. «Покупатель пишет» — чат: заготовленные вопросы по очереди.
+  4. В конце ОДИН вызов ИИ разбирает всю переписку: оценка, пять умений,
+     сильные стороны и что подтянуть. Сессия сохраняется в базу.
 */
 
 type Message = { from: "buyer" | "me"; text: string };
@@ -33,15 +38,17 @@ export default function PracticeSession() {
 
   const market = markets.find((m) => m.id === marketId) ?? markets[0];
   const questions = buyerQuestions[lang];
+  const form = marketplaceForms[market.id];
 
-  const [phase, setPhase] = useState<"form" | "chat" | "analyzing" | "result">("form");
+  const [phase, setPhase] = useState<
+    "form" | "adReview" | "chat" | "analyzing" | "result"
+  >("form");
 
-  // Фаза 1: объявление
-  const [adTitle, setAdTitle] = useState("");
-  const [adCategory, setAdCategory] = useState("");
-  const [adPrice, setAdPrice] = useState("");
-  const [adDesc, setAdDesc] = useState("");
+  // Фаза 1: объявление. Ключи полей задаёт схема площадки
+  const [values, setValues] = useState<Record<string, string>>({});
   const [formError, setFormError] = useState("");
+  // Фаза 2: сработавшие правила разбора
+  const [issues, setIssues] = useState<string[]>([]);
 
   // Фаза 2: чат
   const [messages, setMessages] = useState<Message[]>([]);
@@ -50,24 +57,35 @@ export default function PracticeSession() {
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   // Результат
-  const [result, setResult] = useState<{ score: number; feedback: string; tip: string } | null>(null);
+  const [result, setResult] = useState<PracticeFeedback | null>(null);
   const [error, setError] = useState("");
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  /** Значение поля по роли в схеме площадки: название, цена, описание… */
+  const adValue = (role: keyof typeof form.aiMap) =>
+    (values[form.aiMap[role]] ?? "").trim();
+
   function handlePublish() {
-    if (adTitle.trim() === "") {
+    // Название и цену требуют все три площадки — без них публикации нет
+    if (adValue("title") === "") {
       setFormError(p.adErrorTitle);
       return;
     }
-    if (adPrice.trim() === "") {
+    if (adValue("price") === "") {
       setFormError(p.adErrorPrice);
       return;
     }
     setFormError("");
-    // Покупатель сразу задаёт первый вопрос
+    setIssues(form.checks.filter((rule) => rule.when(values)).map((rule) => rule.id));
+    setPhase("adReview");
+    window.scrollTo(0, 0);
+  }
+
+  /** С разбора объявления — к покупателю: он сразу задаёт первый вопрос. */
+  function startChat() {
     setMessages([{ from: "buyer", text: questions[0] }]);
     setQuestionIndex(0);
     setPhase("chat");
@@ -102,10 +120,25 @@ export default function PracticeSession() {
         withAnswer.filter((m) => m.from === "me")[i]?.text ?? "",
     }));
 
+    // Поля, которых нет у всех площадок (состояние, бренд, габариты),
+    // уходят отдельным списком — так ИИ видит объявление целиком,
+    // а контракт функции остаётся общим для трёх кабинетов
+    const mapped = new Set(Object.values(form.aiMap));
+    const texts = p.forms[market.id] as unknown as { labels: Record<string, string> };
+    const extra = Object.entries(values)
+      .filter(([id, value]) => !mapped.has(id) && value.trim() !== "")
+      .map(([id, value]) => ({ label: texts.labels[id] ?? id, value }));
+
     try {
       const feedback = await getPracticeFeedback({
         marketplace: market.name,
-        ad: { title: adTitle, category: adCategory, price: adPrice, description: adDesc },
+        ad: {
+          title: adValue("title"),
+          category: adValue("category"),
+          price: adValue("price"),
+          description: adValue("description"),
+        },
+        extra,
         dialogue,
         lang,
       });
@@ -114,8 +147,7 @@ export default function PracticeSession() {
         await savePracticeSession({
           userId: user.id,
           marketplace: market.name,
-          score: feedback.score,
-          feedback: feedback.feedback,
+          feedback,
         }).catch(() => undefined);
       }
       setPhase("result");
@@ -170,7 +202,7 @@ export default function PracticeSession() {
               <motion.button
                 type="button"
                 whileTap={{ scale: 0.96 }}
-                onClick={() => navigate("/app/profile")}
+                onClick={() => navigate("/app/progress")}
                 className="flex-1 rounded-2xl border-2 border-forest px-6 py-3.5 font-bold text-forest transition-colors hover:bg-forest hover:text-white"
               >
                 {p.toProfile}
@@ -275,7 +307,74 @@ export default function PracticeSession() {
     );
   }
 
-  /* ===== Фаза 1: форма объявления в духе площадки ===== */
+  /* ===== Фаза 2: разбор объявления по правилам площадки ===== */
+  if (phase === "adReview") {
+    return (
+      <>
+        <AppHeader />
+        <main className="mx-auto max-w-2xl px-4 py-8">
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+            className="rounded-3xl bg-surface p-7 shadow-lg"
+          >
+            {issues.length === 0 ? (
+              <>
+                <span className="flex h-16 w-16 items-center justify-center rounded-2xl bg-forest text-white">
+                  <Check size={32} aria-hidden />
+                </span>
+                <h1 className="mt-4 font-heading text-2xl font-extrabold">
+                  {p.reviewOkTitle}
+                </h1>
+                <p className="mt-2 text-lg leading-relaxed text-ink/70">{p.reviewOkText}</p>
+              </>
+            ) : (
+              <>
+                <h1 className="font-heading text-2xl font-extrabold">{p.reviewTitle}</h1>
+                <ul className="mt-5 flex flex-col gap-4">
+                  {issues.map((id) => (
+                    <li key={id} className="flex items-start gap-3">
+                      <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-sun/25 text-terracotta">
+                        <Lightbulb size={20} aria-hidden />
+                      </span>
+                      <span className="text-lg leading-snug">
+                        {p.checks[id as keyof typeof p.checks]}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
+
+            <div className="mt-7 flex flex-col gap-3 sm:flex-row">
+              <motion.button
+                type="button"
+                whileTap={{ scale: 0.97 }}
+                onClick={startChat}
+                className="flex-1 rounded-2xl bg-terracotta px-6 py-4 text-lg font-bold text-white shadow-lg transition-colors hover:bg-terracotta-dark"
+              >
+                {p.reviewNext}
+              </motion.button>
+              <motion.button
+                type="button"
+                whileTap={{ scale: 0.97 }}
+                onClick={() => {
+                  setPhase("form");
+                  window.scrollTo(0, 0);
+                }}
+                className="rounded-2xl border-2 border-forest px-6 py-4 font-bold text-forest transition-colors hover:bg-forest hover:text-white"
+              >
+                {t.cards.back}
+              </motion.button>
+            </div>
+          </motion.div>
+        </main>
+      </>
+    );
+  }
+
+  /* ===== Фаза 1: форма конкретной площадки ===== */
   return (
     <>
       <AppHeader />
@@ -293,69 +392,20 @@ export default function PracticeSession() {
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
+          className="mt-4"
         >
-          {/* Шапка «площадки» */}
-          <div className={`mt-4 rounded-t-3xl px-6 py-4 ${market.accentBg} ${market.accentText}`}>
-            <p className="font-heading text-xl font-extrabold">{market.name}</p>
-          </div>
+          <h1 className="font-heading text-2xl font-extrabold">{p.step1Title}</h1>
+          <p className="mb-4 mt-1 text-ink/60">{p.step1Hint}</p>
 
-          <div className={`rounded-b-3xl border-2 border-t-0 bg-surface p-6 ${market.cardBorder}`}>
-            <h1 className="font-heading text-2xl font-extrabold">{p.step1Title}</h1>
-            <p className="mt-1 text-ink/60">{p.step1Hint}</p>
-
-            <div className="mt-6 flex flex-col gap-5">
-              <Field
-                id="adTitle"
-                label={p.adTitle}
-                placeholder={p.adTitlePlaceholder}
-                value={adTitle}
-                onChange={setAdTitle}
-              />
-              <Field
-                id="adCategory"
-                label={p.adCategory}
-                placeholder={p.adCategoryPlaceholder}
-                value={adCategory}
-                onChange={setAdCategory}
-              />
-              <Field
-                id="adPrice"
-                label={p.adPrice}
-                inputMode="numeric"
-                placeholder={p.adPricePlaceholder}
-                value={adPrice}
-                onChange={(v) => setAdPrice(v.replace(/\D/g, ""))}
-              />
-              <div>
-                <label htmlFor="adDesc" className="mb-1.5 block text-sm font-semibold">
-                  {p.adDesc}
-                </label>
-                <textarea
-                  id="adDesc"
-                  rows={4}
-                  value={adDesc}
-                  onChange={(e) => setAdDesc(e.target.value)}
-                  placeholder={p.adDescPlaceholder}
-                  className="w-full rounded-xl border-2 border-ink/10 bg-surface px-4 py-3 leading-relaxed outline-none transition-colors placeholder:text-ink/30 focus:border-forest"
-                />
-              </div>
-            </div>
-
-            {formError && (
-              <p role="alert" className="mt-4 rounded-xl bg-terracotta/10 px-4 py-3 text-sm font-medium text-terracotta">
-                {formError}
-              </p>
-            )}
-
-            <motion.button
-              type="button"
-              whileTap={{ scale: 0.97 }}
-              onClick={handlePublish}
-              className={`mt-6 w-full rounded-2xl px-8 py-4 text-lg font-bold shadow-lg ${market.accentBg} ${market.accentText}`}
-            >
-              {p.publishBtn}
-            </motion.button>
-          </div>
+          <MarketForm
+            market={market}
+            values={values}
+            onChange={(id, value) =>
+              setValues((prev) => ({ ...prev, [id]: value }))
+            }
+            onSubmit={handlePublish}
+            error={formError}
+          />
         </motion.div>
       </main>
     </>

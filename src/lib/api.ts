@@ -152,11 +152,38 @@ export async function deleteCard(id: string): Promise<void> {
 
 /* ===== Тренажёр ===== */
 
-export type PracticeSession = {
-  id: string;
-  marketplace: string;
+/*
+  Пять умений, по которым ИИ разбирает тренировку. Порядок задаёт порядок полос
+  на странице прогресса, а сами ключи должны совпадать с SKILL_KEYS в
+  supabase/functions/generate-card/index.ts — по ним склеиваются оценки разных сессий.
+*/
+export const SKILL_KEYS = [
+  "greeting",
+  "clarity",
+  "bargaining",
+  "delivery",
+  "adQuality",
+] as const;
+
+export type SkillKey = (typeof SKILL_KEYS)[number];
+
+/** Оценки 1-10 по умениям. Частичный: у тренировок до внедрения рубрики их нет. */
+export type Skills = Partial<Record<SkillKey, number>>;
+
+export type Improvement = { skill: SkillKey; advice: string };
+
+export type PracticeFeedback = {
   score: number;
   feedback: string;
+  tip: string;
+  skills: Skills;
+  strengths: string[];
+  improvements: Improvement[];
+};
+
+export type PracticeSession = PracticeFeedback & {
+  id: string;
+  marketplace: string;
   created_at: string;
 };
 
@@ -164,33 +191,39 @@ export type PracticeSession = {
 export async function getPracticeFeedback(input: {
   marketplace: string;
   ad: { title: string; category: string; price: string; description: string };
+  /** Поля, которых нет у всех площадок: состояние, бренд, габариты и т.п. */
+  extra?: { label: string; value: string }[];
   dialogue: { question: string; answer: string }[];
   lang: Lang;
-}): Promise<{ score: number; feedback: string; tip: string }> {
+}): Promise<PracticeFeedback> {
   const { data, error } = await supabase.functions.invoke("generate-card", {
     body: {
       action: "practice-feedback",
       marketplace: input.marketplace,
       ad: input.ad,
+      extra: input.extra ?? [],
       dialogue: input.dialogue,
       lang: input.lang,
     },
   });
   if (error) throw new Error("practice feedback failed");
-  return data as { score: number; feedback: string; tip: string };
+  return data as PracticeFeedback;
 }
 
 export async function savePracticeSession(input: {
   userId: string;
   marketplace: string;
-  score: number;
-  feedback: string;
+  feedback: PracticeFeedback;
 }): Promise<void> {
   const { error } = await supabase.from("practice_sessions").insert({
     user_id: input.userId,
     marketplace: input.marketplace,
-    score: input.score,
-    feedback: input.feedback,
+    score: input.feedback.score,
+    feedback: input.feedback.feedback,
+    tip: input.feedback.tip,
+    skills: input.feedback.skills,
+    strengths: input.feedback.strengths,
+    improvements: input.feedback.improvements,
   });
   if (error) throw new Error(error.message);
 }
@@ -198,7 +231,7 @@ export async function savePracticeSession(input: {
 export async function listPracticeSessions(): Promise<PracticeSession[]> {
   const { data, error } = await supabase
     .from("practice_sessions")
-    .select("id, marketplace, score, feedback, created_at")
+    .select("id, marketplace, score, feedback, tip, skills, strengths, improvements, created_at")
     .order("created_at", { ascending: false });
   if (error) throw new Error(error.message);
   return (data ?? []) as PracticeSession[];

@@ -47,11 +47,27 @@ const CATEGORIES = [
   "other",
 ] as const;
 
+// Пять умений тренажёра. Порядок важен: по этим же ключам страница прогресса
+// строит полосы и сравнивает тренировки между собой.
+const SKILL_KEYS = ["greeting", "clarity", "bargaining", "delivery", "adQuality"];
+
 function jsonResponse(body: unknown, status: number): Response {
   return new Response(JSON.stringify(body), {
     status,
     headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
+}
+
+/** Балл 1-10 из чего угодно, что вернула модель. Мусор заменяем на fallback. */
+function clampScore(value: unknown, fallback: number): number {
+  const number = Math.round(Number(value));
+  if (!Number.isFinite(number)) return fallback;
+  return Math.min(10, Math.max(1, number));
+}
+
+/** Первые два элемента массива; не массив — пустой список. */
+function toShortList(value: unknown): unknown[] {
+  return Array.isArray(value) ? value.slice(0, 2) : [];
 }
 
 // Ключевые слова категорий (рус + каз). Продавец лучше знает, что продаёт,
@@ -176,6 +192,8 @@ Deno.serve(async (req: Request) => {
     // practice-feedback
     marketplace?: string;
     ad?: { title?: string; category?: string; price?: string; description?: string };
+    /** Поля, которых нет у всех площадок: состояние, бренд, габариты и т.п. */
+    extra?: { label: string; value: string }[];
     dialogue?: { question: string; answer: string }[];
   };
   try {
@@ -470,14 +488,29 @@ ${answers.freeText ? `— Рассказ продавца своими слов�
           role: "system",
           content: `Ты наставник по онлайн-продажам для начинающих продавцов Казахстана, многим из них за 50. Ученик потренировался в симуляторе маркетплейса: заполнил объявление и ответил на вопросы «покупателя». Разбери его работу тепло и по-доброму, как терпеливый учитель — хвали конкретное, поправляй мягко, без канцелярита.
 
-Оцени: вежливость и скорость смысла в ответах, работу с торгом, честность, конкретику про доставку и встречу, качество объявления (название, описание, цена).
+Обращайся к ученику строго на «вы» — это взрослый человек, а не школьник.
+
+Оцени ровно пять умений, каждое по шкале 1-10. Держись этих определений дословно: ученик тренируется много раз, и оценки разных тренировок мы сравниваем между собой, поэтому планка должна быть одинаковой всегда.
+
+greeting — приветствие и вежливость: поздоровался ли, обращается ли на «вы», благодарит, не бросает разговор молча.
+clarity — ответ по делу: отвечает ли прямо на заданный вопрос, понятно ли с первого раза, без воды и без пустых «да».
+bargaining — разговор о цене: обосновывает ли цену вместо того чтобы просто сбросить или отказать, предлагает ли разумный компромисс, остаётся ли вежливым.
+delivery — доставка и встреча: называет ли конкретное место, время, способ передачи и стоимость доставки вместо расплывчатого «договоримся».
+adQuality — качество объявления: понятное ли название, отвечает ли описание на вопросы покупателя заранее, уместна ли цена.
+
+Ставь 1-3, если умение почти не проявилось, 4-6 — если сделано, но слабо, 7-8 — уверенно, 9-10 — образцово. Не завышай из вежливости: ученику нужен честный ориентир, куда расти.
 
 Верни строго JSON на ${isKz ? "казахском" : "русском"} языке:
 {
- "score": целое 1-10,
+ "score": целое 1-10 — общая оценка тренировки,
  "feedback": "2-3 предложения: что получилось хорошо и что главное подтянуть",
- "tip": "один конкретный совет на следующую тренировку, одним предложением"
-}`,
+ "tip": "один конкретный совет на следующую тренировку, одним предложением",
+ "skills": { "greeting": 1-10, "clarity": 1-10, "bargaining": 1-10, "delivery": 1-10, "adQuality": 1-10 },
+ "strengths": ["что получается — короткой фразой, максимум 2 штуки"],
+ "improvements": [{ "skill": "одно из greeting|clarity|bargaining|delivery|adQuality", "advice": "что сделать в следующий раз, одним предложением" }]
+}
+
+В improvements бери самые слабые умения, максимум два. Советы должны быть про действие («назовите цену доставки сразу»), а не про качество («будьте конкретнее»).`,
         },
         {
           role: "user",
@@ -487,18 +520,48 @@ ${answers.freeText ? `— Рассказ продавца своими слов�
 — Категория: ${payload.ad?.category ?? "-"}
 — Цена: ${payload.ad?.price ?? "-"} тг
 — Описание: ${payload.ad?.description ?? "-"}
-
+${
+            payload.extra && payload.extra.length > 0
+              ? payload.extra.map((f) => `— ${f.label}: ${f.value}`).join("\n") + "\n"
+              : ""
+          }
 Переписка (вопрос покупателя → ответ ученика):
 ${payload.dialogue.map((d, i) => `${i + 1}. «${d.question}» → «${d.answer}»`).join("\n")}`,
         },
       ]);
 
-      const score = Math.min(10, Math.max(1, Math.round(Number(analysis.score) || 5)));
+      const score = clampScore(analysis.score, 5);
+
+      // Модель может вернуть неполный или кривой JSON. Страница прогресса строит
+      // графики по этим числам, поэтому добираем недостающее из общей оценки,
+      // а не отдаём клиенту дырки.
+      const rawSkills = (analysis.skills ?? {}) as Record<string, unknown>;
+      const skills: Record<string, number> = {};
+      for (const key of SKILL_KEYS) {
+        skills[key] = clampScore(rawSkills[key], score);
+      }
+
+      const strengths = toShortList(analysis.strengths).map((s) => String(s));
+
+      const improvements = toShortList(analysis.improvements)
+        .map((item) => {
+          const row = (item ?? {}) as Record<string, unknown>;
+          const skill = String(row.skill ?? "");
+          return {
+            skill: SKILL_KEYS.includes(skill) ? skill : "clarity",
+            advice: String(row.advice ?? "").trim(),
+          };
+        })
+        .filter((item) => item.advice !== "");
+
       return jsonResponse(
         {
           score,
           feedback: String(analysis.feedback ?? ""),
           tip: String(analysis.tip ?? ""),
+          skills,
+          strengths,
+          improvements,
         },
         200
       );

@@ -4,6 +4,7 @@ import { ArrowLeft, LayoutGrid, LogOut, Sun, Moon, ChevronRight, Dumbbell } from
 import { motion } from "framer-motion";
 import { useAuth, useLang, useTheme } from "../context/AppContext";
 import { listPracticeSessions, type PracticeSession } from "../lib/api";
+import { averageScore } from "../lib/progress";
 import AppHeader from "./AppHeader";
 
 /*
@@ -11,7 +12,7 @@ import AppHeader from "./AppHeader";
   ссылка на «Мои карточки», прогресс тренировок и выход.
 */
 export default function Profile() {
-  const { t, lang } = useLang();
+  const { t } = useLang();
   const { theme, setTheme } = useTheme();
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
@@ -28,6 +29,13 @@ export default function Profile() {
       .then(setSessions)
       .catch(() => setSessions([]));
   }, []);
+
+  // Строка в профиле показывает только итог; подробности — на /app/progress
+  const average = averageScore(sessions);
+  const averageScoreText =
+    average === null
+      ? t.progress.previewNone
+      : t.progress.preview.replace("{score}", String(Math.round(average)));
 
   async function handleLogout() {
     await signOut();
@@ -102,37 +110,27 @@ export default function Profile() {
             <ChevronRight size={22} className="text-ink/40" aria-hidden />
           </motion.button>
 
-          {/* Прогресс тренировок */}
-          <section className="mt-4 rounded-3xl bg-surface p-6 shadow-sm">
-            <h2 className="flex items-center gap-2 font-heading text-lg font-bold">
-              <Dumbbell size={20} className="text-burgundy" aria-hidden />
-              {p.progressTitle}
-            </h2>
-            {sessions.length === 0 ? (
-              <p className="mt-3 text-ink/50">{p.progressEmpty}</p>
-            ) : (
-              <ul className="mt-4 flex flex-col gap-3">
-                {sessions.map((session) => (
-                  <li key={session.id} className="rounded-2xl bg-beige p-4">
-                    <div className="flex items-center justify-between gap-3">
-                      <span className="font-semibold capitalize">{session.marketplace}</span>
-                      <span className="rounded-full bg-forest px-3 py-1 font-heading text-sm font-extrabold text-white">
-                        {session.score}/10
-                      </span>
-                    </div>
-                    <p className="mt-2 text-sm leading-relaxed text-ink/70">
-                      {session.feedback}
-                    </p>
-                    <p className="mt-1 text-xs text-ink/40">
-                      {new Date(session.created_at).toLocaleDateString(
-                        lang === "kz" ? "kk-KZ" : "ru-RU"
-                      )}
-                    </p>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </section>
+          {/* Мои тренировки — та же строка-навигация, что и «Мои карточки»:
+              подробный разбор живёт на отдельной странице /app/progress */}
+          <motion.button
+            type="button"
+            whileTap={{ scale: 0.98 }}
+            onClick={() => navigate("/app/progress")}
+            className="mt-4 flex w-full items-center gap-4 rounded-3xl bg-surface p-6 text-left shadow-sm transition-shadow hover:shadow-md"
+          >
+            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-burgundy/10 text-burgundy">
+              <Dumbbell size={24} aria-hidden />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block font-heading text-lg font-bold">
+                {p.progressTitle}
+              </span>
+              <span className="mt-0.5 block text-ink/50">
+                {averageScoreText}
+              </span>
+            </span>
+            <ChevronRight size={22} className="shrink-0 text-ink/40" aria-hidden />
+          </motion.button>
 
           {/* Выход */}
           <button

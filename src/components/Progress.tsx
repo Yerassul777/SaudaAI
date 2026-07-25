@@ -23,6 +23,7 @@ import {
   trend,
 } from "../lib/progress";
 import { markets } from "../data/practice";
+import { formatDate, formatShortDate } from "../lib/dates";
 import AppHeader from "./AppHeader";
 
 /*
@@ -43,10 +44,9 @@ function marketColor(name: string): string {
 }
 
 export default function Progress() {
-  const { t, lang } = useLang();
+  const { t } = useLang();
   const navigate = useNavigate();
   const p = t.progress;
-  const locale = lang === "kz" ? "kk-KZ" : "ru-RU";
 
   const [sessions, setSessions] = useState<PracticeSession[]>([]);
   const [loading, setLoading] = useState(true);
@@ -186,10 +186,7 @@ export default function Progress() {
                     />
                   </div>
                   <span className="w-full truncate text-center text-xs text-ink/40">
-                    {new Date(bar.createdAt).toLocaleDateString(locale, {
-                      day: "numeric",
-                      month: "short",
-                    })}
+                    {formatShortDate(bar.createdAt, p.monthsShort)}
                   </span>
                 </div>
               ))}
@@ -315,7 +312,7 @@ export default function Progress() {
                     </p>
                   )}
                   <p className="mt-1 text-sm text-ink/40">
-                    {new Date(session.created_at).toLocaleDateString(locale)}
+                    {formatDate(session.created_at)}
                   </p>
                 </li>
               ))}

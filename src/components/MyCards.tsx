@@ -23,6 +23,7 @@ import AppHeader from "./AppHeader";
 import HandoffSheet from "./HandoffSheet";
 import { formatForMarketplace, type ExportTarget } from "../lib/exportFormats";
 import { whatsappShareUrl } from "../lib/marketplaceLinks";
+import { formatDate } from "../lib/dates";
 
 /*
   MyCards — сохранённые карточки. Карточка раскрывается по нажатию; внутри —
@@ -187,10 +188,7 @@ export default function MyCards() {
                         {lang === "kz" ? card.title_kz : card.title_ru}
                       </p>
                       <p className="mt-1 text-sm text-ink/50">
-                        {c.created}{" "}
-                        {new Date(card.created_at).toLocaleDateString(
-                          lang === "kz" ? "kk-KZ" : "ru-RU"
-                        )}
+                        {c.created} {formatDate(card.created_at)}
                       </p>
                     </div>
                     <span className="shrink-0 font-heading text-lg font-extrabold text-forest">

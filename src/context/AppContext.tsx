@@ -72,7 +72,11 @@ export function useTheme(): ThemeValue {
 /* ===== Провайдер ===== */
 
 export function AppProviders({ children }: { children: ReactNode }) {
-  const [lang, setLang] = useState<Lang>("ru");
+  // Выбор языка переживает перезагрузку, как и выбор темы: иначе казахоязычный
+  // продавец каждый раз попадал бы на русскую версию
+  const [lang, setLangState] = useState<Lang>(() =>
+    localStorage.getItem("sauda-lang") === "kz" ? "kz" : "ru"
+  );
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [theme, setThemeState] = useState<Theme>(() => {
@@ -84,6 +88,20 @@ export function AppProviders({ children }: { children: ReactNode }) {
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
   }, [theme]);
+
+  /*
+    Язык тоже пишем на <html>. Это нужно не только программам чтения с экрана:
+    в казахском заголовки набираются другим шрифтом, потому что Manrope не
+    содержит букв ә, ғ, қ, ң, ұ, ү и браузер подменяет их системными.
+  */
+  useEffect(() => {
+    document.documentElement.setAttribute("lang", lang === "kz" ? "kk" : "ru");
+  }, [lang]);
+
+  const setLang = (next: Lang) => {
+    localStorage.setItem("sauda-lang", next);
+    setLangState(next);
+  };
 
   const setTheme = (next: Theme) => {
     localStorage.setItem("sauda-theme", next);

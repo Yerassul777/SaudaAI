@@ -9,11 +9,16 @@
       content="Sauda AI — готовая карточка товара для маркетплейса за 10 секунд. Для мастеров и фермеров Казахстана."
     />
     <title>Sauda AI — карточка товара за 10 секунд</title>
-    <!-- Шрифты Manrope (заголовки) и Inter (текст) с поддержкой кириллицы и казахских букв -->
+    <!--
+      Inter — весь текст, Manrope — заголовки в русской версии.
+      Golos Text — заголовки в казахской: у Manrope нет букв ә, ғ, қ, ң, ұ, ү,
+      и браузер подменяет их системным шрифтом прямо внутри слова.
+      Файлы шрифта скачиваются только под тот язык, который открыл человек.
+    -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Manrope:wght@600;700;800&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Manrope:wght@600;700;800&family=Golos+Text:wght@600;700;800&display=swap"
       rel="stylesheet"
     />
   </head>

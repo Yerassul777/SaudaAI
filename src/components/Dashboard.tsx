@@ -27,7 +27,7 @@ export default function Dashboard() {
       title: t.app.learnBtn,
       desc: t.app.learnDesc,
       // Первый шаг новичка: крупнее остальных, с пульсом
-      className: "bg-forest text-white shadow-xl shadow-ink/15 btn-pulse",
+      className: "bg-forest text-white shadow-xl shadow-ink/15 btn-pulse btn-pulse-forest",
       descClass: "text-white/80",
       main: true,
     },

@@ -25,6 +25,7 @@
   --app-primary: #b85c38;       /* терракота, приглушённая — не «кислотная» */
   --app-primary-strong: #9c4a2b;
   --app-primary-glow: rgba(184, 92, 56, 0.4);
+  --app-forest-glow: rgba(46, 89, 71, 0.4);
 
   --app-forest: #2e5947;        /* глубокий зелёный */
   --app-burgundy: #5b2e35;      /* бордовый — акцентные полосы, как в референсе */
@@ -45,6 +46,7 @@
   --app-primary: #e07a48;       /* тёплый оранжевый — здесь он на месте */
   --app-primary-strong: #c9612f;
   --app-primary-glow: rgba(224, 122, 72, 0.45);
+  --app-forest-glow: rgba(87, 147, 122, 0.5);
 
   --app-forest: #57937a;        /* осветлённый зелёный ради контраста */
   --app-burgundy: #7d434d;
@@ -69,8 +71,21 @@
   --color-sun: var(--app-sun);
   --color-line: var(--app-line);
 
-  --font-heading: "Manrope", sans-serif;
+  --font-heading: var(--app-font-heading);
   --font-body: "Inter", sans-serif;
+}
+
+/*
+  Шрифт заголовков зависит от языка страницы. Manrope не содержит казахских
+  букв (ә, ғ, қ, ң, ұ, ү), поэтому в казахской версии слово рвалось на две
+  гарнитуры: обычные буквы из Manrope, казахские из системного шрифта.
+  Golos Text рисует всю кириллицу целиком.
+*/
+:root {
+  --app-font-heading: "Manrope", sans-serif;
+}
+html[lang="kk"] {
+  --app-font-heading: "Golos Text", sans-serif;
 }
 
 /* ===== База страницы ===== */
@@ -104,7 +119,7 @@ body {
 /* ===== Пульсация главной CTA (мягкое «кольцо» раз в ~2 сек) ===== */
 @keyframes btn-pulse-ring {
   0% {
-    box-shadow: 0 0 0 0 var(--app-primary-glow);
+    box-shadow: 0 0 0 0 var(--pulse-glow, var(--app-primary-glow));
   }
   70% {
     box-shadow: 0 0 0 16px transparent;
@@ -115,6 +130,11 @@ body {
 }
 .btn-pulse {
   animation: btn-pulse-ring 2.2s ease-out infinite;
+}
+
+/* Пульс в цвет кнопки: зелёная кнопка светится зелёным, а не терракотой */
+.btn-pulse-forest {
+  --pulse-glow: var(--app-forest-glow);
 }
 
 /* Уважение к reduced-motion: без пульса и плавных прокруток */

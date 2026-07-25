@@ -8,9 +8,9 @@ import { OrnamentDivider } from "./Ornament";
 /*
   Dashboard — хаб. Всё приложение держится на трёх больших кнопках.
 
-  Порядок повторяет путь новичка: сначала «Научиться продавать» (главная,
-  пульсирует), потом «Тренироваться» на безопасном симуляторе, и только
-  потом «Создать карточку» для настоящего товара.
+  Первой стоит «Создать карточку»: это то, ради чего человек пришёл, поэтому
+  она крупнее остальных и пульсирует. Дальше «Научиться продавать» и
+  «Тренироваться» для тех, кто хочет разобраться в площадке глубже.
   Карточки и прогресс переехали в профиль (иконка в шапке).
 */
 export default function Dashboard() {
@@ -22,14 +22,23 @@ export default function Dashboard() {
 
   const actions = [
     {
+      to: "/app/new",
+      icon: Camera,
+      title: t.app.createBtn,
+      desc: t.app.createDesc,
+      // Главное действие: крупнее остальных, с пульсом в цвет кнопки
+      className: "bg-terracotta text-white shadow-xl shadow-terracotta/25 btn-pulse",
+      descClass: "text-white/80",
+      main: true,
+    },
+    {
       to: "/app/learn",
       icon: BookOpen,
       title: t.app.learnBtn,
       desc: t.app.learnDesc,
-      // Первый шаг новичка: крупнее остальных, с пульсом
-      className: "bg-forest text-white shadow-xl shadow-ink/15 btn-pulse btn-pulse-forest",
+      className: "bg-forest text-white shadow-lg shadow-ink/10",
       descClass: "text-white/80",
-      main: true,
+      main: false,
     },
     {
       to: "/app/practice",
@@ -38,15 +47,6 @@ export default function Dashboard() {
       desc: t.app.practiceDesc,
       className: "bg-burgundy text-white shadow-lg shadow-ink/10",
       descClass: "text-white/75",
-      main: false,
-    },
-    {
-      to: "/app/new",
-      icon: Camera,
-      title: t.app.createBtn,
-      desc: t.app.createDesc,
-      className: "bg-terracotta text-white shadow-lg shadow-terracotta/20",
-      descClass: "text-white/80",
       main: false,
     },
   ];

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Check, Lightbulb, Send, Sparkles, Trophy } from "lucide-react";
+import { ArrowLeft, Check, Lightbulb, Send, Trophy } from "lucide-react";
 import { motion } from "framer-motion";
 import { useAuth, useLang } from "../context/AppContext";
 import { markets } from "../data/practice";
@@ -15,6 +15,7 @@ import {
 } from "../lib/api";
 import AppHeader from "./AppHeader";
 import MarketForm from "./MarketForm";
+import Waiting from "./Waiting";
 
 /*
   PracticeSession — тренировка на выбранной площадке, четыре фазы:
@@ -278,16 +279,7 @@ export default function PracticeSession() {
     return (
       <>
         <AppHeader />
-        <main className="flex min-h-[70vh] flex-col items-center justify-center px-4 text-center">
-          <motion.span
-            animate={{ rotate: 360 }}
-            transition={{ duration: 1.6, repeat: Infinity, ease: "linear" }}
-            className="flex h-16 w-16 items-center justify-center rounded-2xl bg-burgundy text-white"
-          >
-            <Sparkles size={30} aria-hidden />
-          </motion.span>
-          <h1 className="mt-6 font-heading text-2xl font-extrabold">{p.analyzing}</h1>
-        </main>
+        <Waiting title={p.analyzing} steps={p.analyzingSteps} interval={2600} />
       </>
     );
   }

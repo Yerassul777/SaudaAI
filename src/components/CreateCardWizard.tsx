@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Camera, Mic, Square, Sparkles } from "lucide-react";
+import { ArrowLeft, Camera, Mic, Square } from "lucide-react";
 import { motion } from "framer-motion";
 import { useAuth, useLang } from "../context/AppContext";
 import {
@@ -13,6 +13,7 @@ import {
 import AppHeader from "./AppHeader";
 import Field from "./Field";
 import CardResult from "./CardResult";
+import Waiting from "./Waiting";
 
 /*
   CreateCardWizard — весь путь создания карточки на одном экране,
@@ -179,17 +180,12 @@ export default function CreateCardWizard() {
     return (
       <>
         <AppHeader />
-        <main className="flex min-h-[70vh] flex-col items-center justify-center px-4 text-center">
-          <motion.span
-            animate={{ rotate: 360 }}
-            transition={{ duration: 1.6, repeat: Infinity, ease: "linear" }}
-            className="flex h-16 w-16 items-center justify-center rounded-2xl bg-terracotta text-white"
-          >
-            <Sparkles size={30} aria-hidden />
-          </motion.span>
-          <h1 className="mt-6 font-heading text-2xl font-extrabold">{w.generating}</h1>
-          <p className="mt-2 max-w-sm text-ink/60">{w.generatingHint}</p>
-        </main>
+        {/* Фоном идёт снятая фотография: видно, что работа над своим товаром */}
+        <Waiting
+          title={w.generating}
+          steps={w.generatingSteps}
+          photoUrl={photoPreview}
+        />
       </>
     );
   }

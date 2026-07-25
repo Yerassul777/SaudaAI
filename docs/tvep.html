@@ -1,0 +1,444 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8" />
+<title>Sauda AI — TVEP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  /*
+    TVEP (Tech Vision Engineering Portfolio) — технический паспорт Sauda AI.
+    Ровно 3 страницы A4. Печать: Ctrl+P → «Сохранить как PDF», поля «Нет», фон — вкл.
+  */
+  :root {
+    --bg: #ffffff; --ink: #1d1915; --soft: #5c5347; --line: #e2dbd0;
+    --terra: #b85c38; --forest: #2e5947; --burgundy: #5b2e35; --sun: #e0a63e;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: "Inter", sans-serif; background: #4a4a4a; color: var(--ink); }
+  .page {
+    width: 794px; height: 1123px; margin: 20px auto; padding: 38px 46px 34px;
+    background: var(--bg); position: relative; overflow: hidden;
+    display: flex; flex-direction: column;
+    page-break-after: always;
+  }
+  .page:last-child { page-break-after: auto; }
+  @media print {
+    body { background: none; }
+    .page { margin: 0; }
+    @page { size: A4; margin: 0; }
+  }
+  h1, h2, h3, .num, .big { font-family: "Manrope", sans-serif; }
+  h1 { font-size: 29px; font-weight: 800; line-height: 1.12; letter-spacing: -0.6px; }
+  h2 { font-size: 14.5px; font-weight: 800; color: var(--terra);
+       text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+  h3 { font-size: 13px; font-weight: 700; margin-bottom: 2px; }
+  p, li, td, th { font-size: 11.2px; line-height: 1.42; color: var(--soft); }
+  strong { color: var(--ink); font-weight: 600; }
+  .rule { height: 3px; background: var(--terra); width: 46px; margin-bottom: 9px; }
+  .head { display: flex; justify-content: space-between; align-items: baseline;
+          border-bottom: 2px solid var(--ink); padding-bottom: 8px; margin-bottom: 14px; }
+  .head .brand { font-family: "Manrope"; font-size: 17px; font-weight: 800; color: var(--ink); }
+  .head .meta { font-size: 10px; color: var(--soft); letter-spacing: 0.5px; }
+  section { margin-bottom: 9px; }
+  .foot { position: absolute; bottom: 16px; left: 46px; right: 46px;
+          display: flex; justify-content: space-between; font-size: 10.5px;
+          color: #8d8579; border-top: 1px solid var(--line); padding-top: 6px; }
+  .cols { display: flex; gap: 12px; }
+  .col { flex: 1; }
+  .box { border: 1px solid var(--line); border-radius: 9px; padding: 9px 11px; }
+  .box.tint { background: #faf6ef; }
+  .box.green { border-color: rgba(46,89,71,.35); background: rgba(46,89,71,.06); }
+  .box.terra { border-color: rgba(184,92,56,.35); background: rgba(184,92,56,.06); }
+  ul { list-style: none; }
+  ul li { padding-left: 13px; position: relative; margin-bottom: 2px; }
+  ul li::before { content: "▪"; color: var(--terra); position: absolute; left: 2px; top: -1px; }
+  ol { padding-left: 17px; }
+  ol li { margin-bottom: 2px; }
+  table { width: 100%; border-collapse: collapse; }
+  th { text-align: left; font-weight: 700; color: var(--ink); font-size: 10.5px;
+       border-bottom: 1.5px solid var(--ink); padding: 3px 5px; }
+  td { border-bottom: 1px solid var(--line); padding: 2.5px 5px; vertical-align: top; }
+  td.n { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .tag { display: inline-block; background: var(--terra); color: #fff; font-weight: 700;
+         font-size: 10.5px; padding: 4px 11px; border-radius: 999px; letter-spacing: 0.5px; }
+  .tag.dark { background: var(--burgundy); }
+  .tag.green { background: var(--forest); }
+  .kpi { display: flex; gap: 14px; }
+  .kpi .item { flex: 1; }
+  .kpi .big { font-size: 23px; font-weight: 800; color: var(--forest); line-height: 1.05; }
+  .kpi p { font-size: 10.2px; margin-top: 1px; }
+  code, .mono { font-family: "Consolas", "Courier New", monospace; font-size: 10.4px;
+        background: rgba(46,89,71,.09); color: var(--forest); padding: 1px 5px; border-radius: 5px; }
+  .formula { font-family: "Consolas", "Courier New", monospace; font-size: 10.6px;
+             background: #faf6ef; border-left: 3px solid var(--forest);
+             padding: 5px 9px; margin: 4px 0; color: var(--ink); line-height: 1.4; }
+
+  /* Архитектурная схема на CSS: без внешних картинок */
+  .arch { border: 1px solid var(--line); border-radius: 9px; padding: 9px; background: #fbf9f5; }
+  .tier { display: flex; align-items: stretch; gap: 6px; margin-bottom: 5px; }
+  .tier .label { width: 74px; flex-shrink: 0; font-size: 10px; font-weight: 700;
+                 color: var(--soft); text-transform: uppercase; letter-spacing: .6px;
+                 display: flex; align-items: center; }
+  .node { flex: 1; border-radius: 7px; padding: 5px 8px; font-size: 10.1px;
+          line-height: 1.3; border: 1.3px solid; }
+  .node b { display: block; font-family: "Manrope"; font-size: 10.6px; font-weight: 700; }
+  .n-front { border-color: var(--terra); background: rgba(184,92,56,.08); color: var(--ink); }
+  .n-back  { border-color: var(--forest); background: rgba(46,89,71,.08); color: var(--ink); }
+  .n-ext   { border-color: var(--burgundy); background: rgba(91,46,53,.07); color: var(--ink); }
+  .arrow { text-align: center; font-size: 10.5px; color: var(--terra); margin: -1px 0 4px 78px; }
+</style>
+</head>
+<body>
+
+<!-- ══════════════ СТРАНИЦА 1 — БОЛЬ И ЦЕННОСТЬ ══════════════ -->
+<section class="page">
+  <div class="head">
+    <span class="brand">Sauda AI</span>
+    <span class="meta">TECH VISION ENGINEERING PORTFOLIO · TECH VISION 2026</span>
+  </div>
+
+  <span class="tag">Digital Economy &amp; Future Tech → Локальная коммерция</span>
+  <h1 style="margin-top:12px;">Sauda AI — карточка товара<br/>из одной фотографии и голоса</h1>
+  <p style="margin-top:9px; font-size:13.5px;">
+    Веб-сервис: <strong>sauda-ai.vercel.app</strong> · Код: <strong>github.com/Yerassul777/SaudaAI</strong>
+  </p>
+
+  <section style="margin-top:14px;">
+    <div class="rule"></div>
+    <h2>Один пользователь — одна острая боль</h2>
+    <div class="box terra">
+      <h3>Кто</h3>
+      <p>
+        Фермер или мастер ручной работы 45+ из региона Казахстана. Продаёт на базаре и через
+        знакомых. Смартфоном пользуется для WhatsApp и оплаты по QR — то есть цифровое ему
+        не чуждо, но только там, где всё сводится к двум действиям.
+      </p>
+      <h3 style="margin-top:9px;">Боль</h3>
+      <p>
+        <strong>Он не может оформить свой товар так, чтобы его купили в интернете.</strong>
+        Карточка получается из двух сухих предложений («продам мёд, звоните»), цена ставится
+        наугад, а форма кабинета маркетплейса с артикулами, габаритами и характеристиками
+        останавливает его на первом же шаге. Не отсутствие интернета и не нежелание
+        продавать — именно оформление и страх чужого интерфейса.
+      </p>
+      <h3 style="margin-top:9px;">Цена боли</h3>
+      <p>
+        Товар остаётся на локальном рынке. По данным Министерства торговли и интеграции РК,
+        выход на маркетплейс увеличивает средний объём продаж предприятия <strong>в 4,8 раза
+        за полтора года</strong> — этого роста он просто не получает.
+      </p>
+    </div>
+  </section>
+
+  <section>
+    <div class="kpi">
+      <div class="item box tint">
+        <div class="big">2,37 млн</div>
+        <p>субъектов МСП в Казахстане, около 70% — ИП</p>
+      </div>
+      <div class="item box tint">
+        <div class="big">×4,8</div>
+        <p>рост продаж через 1,5 года после выхода на маркетплейс</p>
+      </div>
+      <div class="item box tint">
+        <div class="big">72% / 32%</div>
+        <p>пользуются банковскими приложениями: города против сёл ВКО и Жамбылской области</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="rule"></div>
+    <h2>Уникальное ценностное предложение (USP)</h2>
+    <div class="box green">
+      <p style="font-size:14px; color:var(--ink);">
+        <strong>Продавец рассказывает о товаре голосом на казахском или русском и фотографирует
+        его на телефон — получает готовую карточку, обоснованную цену и умение довести дело
+        до публикации на площадке.</strong>
+      </p>
+    </div>
+    <div class="cols" style="margin-top:10px;">
+      <div class="col box">
+        <h3>Чем мы не переводчик и не ChatGPT</h3>
+        <ul>
+          <li>Цена не выдумывается: она привязана к таблице рыночных диапазонов, а вне
+            известных категорий сервис честно отказывается называть число.</li>
+          <li>Слова продавца имеют приоритет над догадками модели по фотографии.</li>
+          <li>Тексты сразу на двух языках — под реального казахстанского покупателя.</li>
+        </ul>
+      </div>
+      <div class="col box">
+        <h3>Чем мы не курс и не инструкция</h3>
+        <ul>
+          <li>Тренажёр повторяет реальные кабинеты Kaspi, OLX и Wildberries: разные поля,
+            разный порядок шагов, настоящие требования площадок.</li>
+          <li>ИИ разбирает диалог с «покупателем» по фиксированной рубрике из пяти умений
+            и показывает динамику от тренировки к тренировке.</li>
+          <li>Готовый текст доводится до кабинета площадки за три подсказанных шага.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="rule"></div>
+    <h2>Что уже работает в MVP</h2>
+    <div class="cols">
+      <div class="col box tint">
+        <h3>Сделать</h3>
+        <p>Фото + три ответа или голос → заголовок и описание RU/KZ, теги, цена с обоснованием,
+           пост для WhatsApp, «студийное» фото товара.</p>
+      </div>
+      <div class="col box tint">
+        <h3>Научиться</h3>
+        <p>Уроки с проверочными вопросами и тренажёр трёх площадок с ИИ-разбором
+           переписки и страницей прогресса.</p>
+      </div>
+      <div class="col box tint">
+        <h3>Продать</h3>
+        <p>Экспорт текста под конвенции Kaspi, OLX и Wildberries, переход в кабинет площадки,
+           отправка поста в WhatsApp одним нажатием.</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="foot"><span>Sauda AI · TVEP · Tech Vision 2026</span><span>Страница 1 из 3</span></div>
+</section>
+
+<!-- ══════════════ СТРАНИЦА 2 — АРХИТЕКТУРА И ИИ ══════════════ -->
+<section class="page">
+  <div class="head">
+    <span class="brand">Sauda AI</span>
+    <span class="meta">АРХИТЕКТУРА, СТЕК И ЛОГИКА ИИ-КОМПОНЕНТОВ</span>
+  </div>
+
+  <section>
+    <div class="rule"></div>
+    <h2>Архитектурная схема</h2>
+    <div class="arch">
+      <div class="tier">
+        <span class="label">Клиент</span>
+        <div class="node n-front">
+          <b>SPA: React 19 + Vite + TypeScript + Tailwind v4 + framer-motion</b>
+          Маршруты: лендинг · вход по телефону и ПИНу · мастер карточки · мои карточки ·
+          уроки · тренажёр площадок · профиль · прогресс. Все тексты RU/KZ в одном словаре,
+          темы — на CSS-переменных. Хостинг: Vercel (статика + SPA-роутинг).
+        </div>
+      </div>
+      <div class="arrow">↓ &nbsp; @supabase/supabase-js: сессия (JWT), Storage, PostgREST, вызовы функций &nbsp; ↓</div>
+
+      <div class="tier">
+        <span class="label">Бэкенд</span>
+        <div class="node n-back">
+          <b>Supabase Auth</b>
+          Телефон + 4-значный ПИН, отображённые в технический email и пароль.
+          Счётчик неудачных попыток на сервере: 5 ошибок → пауза 15 минут.
+        </div>
+        <div class="node n-back">
+          <b>PostgreSQL + RLS</b>
+          <span class="mono">cards</span>, <span class="mono">practice_sessions</span> —
+          построчный доступ только владельцу; <span class="mono">price_ranges</span> —
+          рыночные коридоры по категориям; <span class="mono">login_attempts</span>,
+          <span class="mono">app_secrets</span> — из браузера недоступны.
+        </div>
+      </div>
+      <div class="tier">
+        <span class="label">&nbsp;</span>
+        <div class="node n-back">
+          <b>Storage (приватные бакеты)</b>
+          <span class="mono">product-photos</span>, <span class="mono">generated-images</span>.
+          Наружу — только подписанные ссылки с коротким сроком жизни.
+        </div>
+        <div class="node n-back">
+          <b>Edge Functions (Deno)</b>
+          <span class="mono">auth-phone-pin</span> — вход и регистрация;
+          <span class="mono">generate-card</span> — четыре действия:
+          <span class="mono">card</span>, <span class="mono">transcribe</span>,
+          <span class="mono">image</span>, <span class="mono">practice-feedback</span>.
+        </div>
+      </div>
+      <div class="arrow">↓ &nbsp; ключ OpenAI читается только на сервере, в браузер не попадает никогда &nbsp; ↓</div>
+
+      <div class="tier">
+        <span class="label">Внешние API</span>
+        <div class="node n-ext"><b>OpenAI gpt-4o</b> зрение: разбор фотографии товара</div>
+        <div class="node n-ext"><b>gpt-4o-mini</b> копирайтинг и разбор тренировки</div>
+        <div class="node n-ext"><b>whisper-1</b> речь → текст, RU и KZ</div>
+        <div class="node n-ext"><b>gpt-image-1</b> «студийное» фото</div>
+      </div>
+    </div>
+    <p style="margin-top:7px; font-size:11.5px;">
+      <strong>Безопасность:</strong> в браузере живёт только публичный anon-ключ; доступ к данным
+      ограничивает RLS на стороне базы. Edge-функции требуют валидный JWT и дополнительно
+      проверяют, что путь к файлу начинается с идентификатора самого пользователя — чужую
+      папку в Storage запросить нельзя. Секреты (ключ и выбор модели) лежат в таблице,
+      закрытой от анонимной роли.
+    </p>
+  </section>
+
+  <section>
+    <div class="rule"></div>
+    <h2>ИИ-цепочка №1: фотография и голос → карточка товара</h2>
+    <div class="box">
+      <p style="margin-bottom:6px;">
+        Это не одна обёртка над API, а последовательность из четырёх шагов, где каждый следующий
+        ограничивает свободу модели данными предыдущего:
+      </p>
+      <ol>
+        <li><strong>Расшифровка голоса.</strong> whisper-1 с подсказкой о контексте
+          («продавец из Казахстана описывает товар, может говорить по-русски или по-казахски») —
+          подсказка заметно повышает точность на казахских названиях и слове «тенге».</li>
+        <li><strong>Зрение.</strong> gpt-4o получает фотографию и возвращает строгий JSON-профиль:
+          категория, материалы, цвета, признаки ручной работы. Только наблюдаемые факты —
+          выдумывать бренд и модель прямо запрещено промптом.</li>
+        <li><strong>Категоризация с приоритетом продавца.</strong> Категория сначала ищется
+          по словам самого продавца — словарь из 11 категорий с русскими и казахскими корнями
+          (<span class="mono">мед / бал / омарт</span>, <span class="mono">войлок / киіз</span> и т. д.),
+          и только если ни один корень не подошёл, берётся догадка зрения. Человек знает свой
+          товар лучше, чем модель — фотографию.</li>
+        <li><strong>Ценовой якорь и копирайтинг.</strong> По категории из
+          <span class="mono">price_ranges</span> берётся рыночный коридор и передаётся в модель
+          как ограничение. gpt-4o-mini пишет заголовок и описание на двух языках, теги,
+          обоснование цены и пост для WhatsApp — уже внутри этого коридора.</li>
+      </ol>
+      <p style="margin-top:6px;"><strong>Разделение источников правды:</strong> что это за товар —
+      из ответов продавца; как он выглядит — из фотографии; сколько стоит — из таблицы диапазонов.
+      Модель нигде не остаётся единственным источником факта.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="rule"></div>
+    <h2>ИИ-цепочка №2: тренировка → разбор по пяти умениям</h2>
+    <div class="box">
+      <p>
+        Тренажёр повторяет кабинет площадки (наборы полей описаны данными, один рендерер на три
+        площадки), проверяет заполненное <strong>локальными правилами без вызова ИИ</strong>
+        — длина наименования для Wildberries, состояние и город для OLX, характеристики для Kaspi —
+        и только в самом конце делает <strong>один</strong> вызов модели на всю сессию.
+      </p>
+      <p style="margin-top:5px;">
+        Модель возвращает строгий JSON: общий балл, разбор словами, совет, оценки по пяти умениям
+        (<span class="mono">greeting</span>, <span class="mono">clarity</span>,
+        <span class="mono">bargaining</span>, <span class="mono">delivery</span>,
+        <span class="mono">adQuality</span>), сильные стороны и список «что подтянуть».
+        Определения умений и шкала зафиксированы в системном промпте дословно — без этого оценки
+        разных сессий несопоставимы и график прогресса превращается в шум.
+      </p>
+      <p style="margin-top:5px;">
+        <strong>Валидация на сервере:</strong> баллы приводятся к диапазону 1–10, недостающие
+        умения добираются из общей оценки, списки режутся до двух элементов. Кривой ответ модели
+        не может уронить страницу прогресса.
+      </p>
+    </div>
+  </section>
+
+  <div class="foot"><span>Sauda AI · TVEP · Tech Vision 2026</span><span>Страница 2 из 3</span></div>
+</section>
+
+<!-- ══════════════ СТРАНИЦА 3 — МОДЕЛЬ И ЭКОНОМИКА ══════════════ -->
+<section class="page">
+  <div class="head">
+    <span class="brand">Sauda AI</span>
+    <span class="meta">АЛГОРИТМИЧЕСКАЯ МОДЕЛЬ · СТРУКТУРА ЗАТРАТ · ИСТОЧНИКИ ДОХОДА</span>
+  </div>
+
+  <section>
+    <div class="rule"></div>
+    <h2>Алгоритмическая модель</h2>
+
+    <h3>1. Рекомендуемая цена: зажим в рыночный коридор</h3>
+    <p><span class="mono">c</span> — категория, <span class="mono">[min_c, max_c]</span> — её диапазон
+      из <span class="mono">price_ranges</span>, <span class="mono">P_ai</span> — предложение модели,
+      <span class="mono">P_user</span> — цена продавца.</p>
+    <div class="formula">
+      c = keyword(текст продавца) ?? vision(фото)<br/>
+      если c ∉ price_ranges → отказ назвать цену (price_unknown), а не выдуманное число<br/>
+      P_rec = P_user, если продавец назвал цену; иначе P_rec = min(max(P_ai, min_c), max_c)
+    </div>
+    <p>Цена продавца всегда главнее: модель лишь сообщает, попадает ли она в коридор. Отказ вместо
+      галлюцинации — сознательное решение: неверная цена стоит продавцу денег, «не знаю» — нет.</p>
+
+    <h3 style="margin-top:8px;">2. Разбор объявления: предикаты требований площадок</h3>
+    <p>Для каждой площадки задан набор предикатов над полями формы; показываются все сработавшие.
+      Считается на клиенте — мгновенно и без затрат на ИИ.</p>
+    <div class="formula">
+      Wildberries: len(наименование) &gt; 60 · артикул = ∅ · любой габарит = ∅
+      &nbsp;&nbsp; OLX: состояние = ∅ · город = ∅<br/>
+      Kaspi: категория = ∅ · обе характеристики = ∅ &nbsp;&nbsp; Все: len(описание) &lt; 80 символов
+    </div>
+
+    <h3 style="margin-top:8px;">3. Прогресс продавца: скользящее среднее и полосы умений</h3>
+    <div class="formula">
+      trend = mean(score последних 3 сессий) − mean(score предыдущих 3);
+      |trend| &lt; 0,5 → «без изменений»<br/>
+      skill_k = mean(оценок умения k по сессиям с рубрикой)<br/>
+      band(x) = «хорошо» при x ≥ 7 · «нормально» при x ≥ 5 · иначе «надо подтянуть»
+    </div>
+    <p>Порог 0,5 балла отсекает шум одной удачной тренировки. Сессии без рубрики учитываются
+      в общем балле, но пропускаются при расчёте умений — иначе средние падали бы без вины продавца.</p>
+  </section>
+
+  <section>
+    <div class="rule"></div>
+    <h2>Структура затрат (Cost Structure)</h2>
+    <p style="margin-bottom:5px;">Переменные затраты — это вызовы моделей. Расчёт по прайсу OpenAI
+      и курсу Нацбанка РК <strong>≈ 470 ₸ за доллар (июль 2026)</strong>.</p>
+    <table>
+      <tr><th>Операция</th><th>Модель и объём</th><th class="n">USD</th><th class="n">≈ ₸</th></tr>
+      <tr><td>Разбор фотографии</td><td>gpt-4o, ~1,5 тыс. вх. + 0,3 тыс. исх. ток.</td><td class="n">0,0068</td><td class="n">3,2</td></tr>
+      <tr><td>Тексты RU/KZ, теги, цена, пост</td><td>gpt-4o-mini, ~0,9 + 0,5 тыс. токенов</td><td class="n">0,0004</td><td class="n">0,2</td></tr>
+      <tr><td><strong>Итого карточка без опций</strong></td><td>две модели, две ступени цепочки</td><td class="n"><strong>0,0072</strong></td><td class="n"><strong>3,4</strong></td></tr>
+      <tr><td>Голосовой ввод (опция)</td><td>whisper-1, 30 секунд</td><td class="n">0,0030</td><td class="n">1,4</td></tr>
+      <tr><td>«Студийное» фото (опция)</td><td>gpt-image-1, 1024×1024, среднее качество</td><td class="n">0,0420</td><td class="n">19,7</td></tr>
+      <tr><td>Разбор одной тренировки</td><td>gpt-4o-mini, один вызов на сессию</td><td class="n">0,0004</td><td class="n">0,2</td></tr>
+      <tr><td><strong>Полный сценарий: голос + карточка + фото</strong></td><td>—</td><td class="n"><strong>0,0522</strong></td><td class="n"><strong>≈ 25</strong></td></tr>
+    </table>
+    <p style="margin-top:5px;">
+      <strong>Вывод:</strong> себестоимость почти целиком сидит в генерации фото — она в шесть раз
+      дороже остальной цепочки, поэтому фото вынесено в отдельное действие по кнопке и именно оно
+      лимитируется в тарифе. Постоянные затраты на старте нулевые: Vercel Hobby и Supabase Free.
+    </p>
+  </section>
+
+  <section>
+    <div class="rule"></div>
+    <h2>Источники дохода и масштабирование</h2>
+    <div class="cols">
+      <div class="col box tint">
+        <h3>Freemium для продавца</h3>
+        <p>Бесплатно — 5 карточек в месяц, уроки и тренажёр. Подписка <strong>990 ₸/мес</strong>:
+          безлимит карточек и 20 «студийных» фото. При полной выборке лимита затраты ≈ 500 ₸,
+          валовая маржа около 50% и выше.</p>
+      </div>
+      <div class="col box tint">
+        <h3>B2B и институции</h3>
+        <p>Пакеты для кооперативов, ремесленных палат и центров поддержки предпринимательства
+          при акиматах: 50–100 продавцов разом, с отчётом по доведённым до публикации.</p>
+      </div>
+      <div class="col box tint">
+        <h3>Партнёрство с площадками</h3>
+        <p>Площадке выгоден каждый новый продавец с корректной карточкой — отсюда оплата
+          за приведённого и активированного продавца.</p>
+      </div>
+    </div>
+    <div class="box green" style="margin-top:7px;">
+      <h3>Измеримый эффект и что мы считаем</h3>
+      <p>
+        Доля продавцов, дошедших от фотографии до публикации; рост среднего балла тренажёра от первой
+        тренировки к третьей; карточек на продавца в месяц. Вторая метрика уже собирается: сессии
+        пишутся в <span class="mono">practice_sessions</span> вместе с разбором по пяти умениям.
+      </p>
+    </div>
+    <p style="margin-top:6px;">
+      <strong>Масштабирование.</strong> Тяжёлая работа вынесена в Edge Functions, состояния между
+      запросами нет — рост нагрузки решается платформой без переписывания кода.
+    </p>
+  </section>
+
+  <div class="foot"><span>Sauda AI · TVEP · Tech Vision 2026</span><span>Страница 3 из 3</span></div>
+</section>
+
+</body>
+</html>

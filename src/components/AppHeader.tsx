@@ -1,8 +1,8 @@
 import { useNavigate } from "react-router-dom";
-import { Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
 import { useAuth, useLang } from "../context/AppContext";
 import ThemeToggle from "./ThemeToggle";
+import Brand from "./Brand";
 
 /*
   AppHeader — шапка кабинета: логотип, переключатели языка и темы,
@@ -26,7 +26,7 @@ export default function AppHeader() {
           className="flex items-center gap-2"
         >
           <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-terracotta text-white">
-            <Sparkles size={20} aria-hidden />
+            <Brand size={22} />
           </span>
           <span className="font-heading text-xl font-extrabold">Sauda AI</span>
         </button>

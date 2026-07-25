@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { Menu, X, Sparkles } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { motion } from "framer-motion";
 import type { Content, Lang } from "../content";
 import ThemeToggle from "./ThemeToggle";
+import Brand from "./Brand";
 
 /*
   Navbar — "липкая" шапка сайта.
@@ -54,7 +55,7 @@ export default function Navbar({ t, lang, onLangChange, onRegister }: Props) {
         {/* Логотип */}
         <a href="#top" className="flex items-center gap-2">
           <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-terracotta text-white">
-            <Sparkles size={18} aria-hidden />
+            <Brand size={20} />
           </span>
           <span className="font-heading text-xl font-extrabold">Sauda AI</span>
         </a>

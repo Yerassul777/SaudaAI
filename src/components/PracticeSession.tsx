@@ -7,8 +7,10 @@ import { markets } from "../data/practice";
 import { buyerQuestions } from "../data/practice";
 import { marketplaceForms } from "../data/marketplaceForms";
 import {
+  getBuyerReply,
   getPracticeFeedback,
   savePracticeSession,
+  type ChatTurn,
   type PracticeFeedback,
 } from "../lib/api";
 import AppHeader from "./AppHeader";
@@ -22,12 +24,17 @@ import MarketForm from "./MarketForm";
      из data/marketplaceForms.ts, а не одна на всех.
   2. «Посмотрим объявление» — разбор заполненного по правилам площадки.
      Считается на клиенте обычными правилами: мгновенно и без затрат на ИИ.
-  3. «Покупатель пишет» — чат: заготовленные вопросы по очереди.
-  4. В конце ОДИН вызов ИИ разбирает всю переписку: оценка, пять умений,
+  3. «Покупатель пишет» — чат. Каждую реплику покупателя сочиняет модель,
+     видя объявление и всю переписку целиком, поэтому он реагирует на то, что
+     продавец действительно ответил. Тему реплики при этом задаёт сервер, а не
+     модель: пять тем подряд кормят пять умений в рубрике разбора.
+     Если модель не ответила или вышла из роли, подставляется заготовленный
+     вопрос из data/practice.ts — тренировка не ломается из-за сети.
+  4. В конце ещё один вызов ИИ разбирает всю переписку: оценка, пять умений,
      сильные стороны и что подтянуть. Сессия сохраняется в базу.
 */
 
-type Message = { from: "buyer" | "me"; text: string };
+type Message = ChatTurn;
 
 export default function PracticeSession() {
   const { market: marketId } = useParams();
@@ -50,9 +57,9 @@ export default function PracticeSession() {
   // Фаза 2: сработавшие правила разбора
   const [issues, setIssues] = useState<string[]>([]);
 
-  // Фаза 2: чат
+  // Фаза 3: чат
   const [messages, setMessages] = useState<Message[]>([]);
-  const [questionIndex, setQuestionIndex] = useState(0);
+  const [buyerTyping, setBuyerTyping] = useState(false);
   const [draft, setDraft] = useState("");
   const chatEndRef = useRef<HTMLDivElement>(null);
 
@@ -62,11 +69,34 @@ export default function PracticeSession() {
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  }, [messages, buyerTyping]);
 
   /** Значение поля по роли в схеме площадки: название, цена, описание… */
   const adValue = (role: keyof typeof form.aiMap) =>
     (values[form.aiMap[role]] ?? "").trim();
+
+  /** Объявление в том виде, в каком его видят покупатель и наставник. */
+  const ad = () => ({
+    title: adValue("title"),
+    category: adValue("category"),
+    price: adValue("price"),
+    description: adValue("description"),
+  });
+
+  /*
+    Поля, которых нет у всех площадок (состояние, бренд, габариты), уходят
+    отдельным списком: так ИИ видит объявление целиком, а контракт функции
+    остаётся общим для трёх кабинетов.
+  */
+  const extraFields = () => {
+    const mapped = new Set(Object.values(form.aiMap));
+    const texts = p.forms[market.id] as unknown as {
+      labels: Record<string, string>;
+    };
+    return Object.entries(values)
+      .filter(([id, value]) => !mapped.has(id) && value.trim() !== "")
+      .map(([id, value]) => ({ label: texts.labels[id] ?? id, value }));
+  };
 
   function handlePublish() {
     // Название и цену требуют все три площадки — без них публикации нет
@@ -84,62 +114,72 @@ export default function PracticeSession() {
     window.scrollTo(0, 0);
   }
 
-  /** С разбора объявления — к покупателю: он сразу задаёт первый вопрос. */
-  function startChat() {
-    setMessages([{ from: "buyer", text: questions[0] }]);
-    setQuestionIndex(0);
-    setPhase("chat");
-    window.scrollTo(0, 0);
-  }
+  /*
+    Очередная реплика покупателя. Модель видит объявление и всю переписку,
+    поэтому отвечает на то, что продавец действительно написал. Тему реплики
+    выбирает сервер по номеру хода.
 
-  async function handleSend() {
-    const text = draft.trim();
-    if (text === "") return;
-    setDraft("");
+    Модель не ответила или вышла из роли (сервер вернул message = null) —
+    подставляем заготовленный вопрос по этой же теме. Тренировка не должна
+    ломаться из-за сети, особенно на защите.
+  */
+  async function askBuyer(chat: Message[]) {
+    const turn = chat.filter((m) => m.from === "buyer").length;
+    setBuyerTyping(true);
 
-    const nextIndex = questionIndex + 1;
-    const withAnswer: Message[] = [...messages, { from: "me", text }];
-
-    if (nextIndex < questions.length) {
-      // Следующий вопрос покупателя — с небольшой паузой, как в жизни
-      setMessages(withAnswer);
-      setQuestionIndex(nextIndex);
-      setTimeout(() => {
-        setMessages((prev) => [...prev, { from: "buyer", text: questions[nextIndex] }]);
-      }, 700);
-      return;
+    let text: string | null = null;
+    try {
+      const reply = await getBuyerReply({
+        marketplace: market.name,
+        ad: ad(),
+        extra: extraFields(),
+        chat,
+        lang,
+      });
+      text = reply.message;
+    } catch {
+      text = null;
     }
 
-    // Вопросы кончились → разбор ИИ
-    setMessages(withAnswer);
+    setMessages((prev) => [
+      ...prev,
+      { from: "buyer", text: text ?? questions[turn] },
+    ]);
+    setBuyerTyping(false);
+  }
+
+  /** С разбора объявления — к покупателю: он пишет первым. */
+  async function startChat() {
+    setMessages([]);
+    setError("");
+    setPhase("chat");
+    window.scrollTo(0, 0);
+    await askBuyer([]);
+  }
+
+  /** Пары «вопрос покупателя → ответ продавца» для итогового разбора. */
+  function toDialogue(chat: Message[]) {
+    return chat
+      .map((message, i) =>
+        message.from === "buyer"
+          ? {
+              question: message.text,
+              answer:
+                chat.slice(i + 1).find((next) => next.from === "me")?.text ?? "",
+            }
+          : null
+      )
+      .filter((pair): pair is { question: string; answer: string } => pair !== null);
+  }
+
+  async function finish(chat: Message[]) {
     setPhase("analyzing");
-
-    const dialogue = questions.map((question, i) => ({
-      question,
-      answer:
-        withAnswer.filter((m) => m.from === "me")[i]?.text ?? "",
-    }));
-
-    // Поля, которых нет у всех площадок (состояние, бренд, габариты),
-    // уходят отдельным списком — так ИИ видит объявление целиком,
-    // а контракт функции остаётся общим для трёх кабинетов
-    const mapped = new Set(Object.values(form.aiMap));
-    const texts = p.forms[market.id] as unknown as { labels: Record<string, string> };
-    const extra = Object.entries(values)
-      .filter(([id, value]) => !mapped.has(id) && value.trim() !== "")
-      .map(([id, value]) => ({ label: texts.labels[id] ?? id, value }));
-
     try {
       const feedback = await getPracticeFeedback({
         marketplace: market.name,
-        ad: {
-          title: adValue("title"),
-          category: adValue("category"),
-          price: adValue("price"),
-          description: adValue("description"),
-        },
-        extra,
-        dialogue,
+        ad: ad(),
+        extra: extraFields(),
+        dialogue: toDialogue(chat),
         lang,
       });
       setResult(feedback);
@@ -156,6 +196,25 @@ export default function PracticeSession() {
       setError(p.errorFeedback);
       setPhase("chat");
     }
+  }
+
+  async function handleSend() {
+    const text = draft.trim();
+    // Пока покупатель «печатает», второй ответ не принимаем: иначе реплики
+    // перемешаются и разбор получит кашу вместо переписки
+    if (text === "" || buyerTyping) return;
+    setDraft("");
+
+    const withAnswer: Message[] = [...messages, { from: "me", text }];
+    setMessages(withAnswer);
+
+    const asked = withAnswer.filter((m) => m.from === "buyer").length;
+    if (asked < questions.length) {
+      await askBuyer(withAnswer);
+      return;
+    }
+    // Покупатель задал все свои вопросы → разбор
+    await finish(withAnswer);
   }
 
   /* ===== Разбор ===== */
@@ -271,6 +330,31 @@ export default function PracticeSession() {
                 </p>
               </motion.div>
             ))}
+
+            {/* Покупатель думает: модель сочиняет реплику 1-2 секунды */}
+            {buyerTyping && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="flex justify-start"
+                aria-label={p.buyerTyping}
+              >
+                <span className="flex gap-1.5 rounded-2xl rounded-bl-md bg-beige px-5 py-4">
+                  {[0, 1, 2].map((dot) => (
+                    <motion.span
+                      key={dot}
+                      animate={{ opacity: [0.25, 1, 0.25] }}
+                      transition={{
+                        duration: 1.1,
+                        repeat: Infinity,
+                        delay: dot * 0.18,
+                      }}
+                      className="h-2.5 w-2.5 rounded-full bg-ink/50"
+                    />
+                  ))}
+                </span>
+              </motion.div>
+            )}
             <div ref={chatEndRef} />
           </div>
 
@@ -296,8 +380,9 @@ export default function PracticeSession() {
               type="button"
               whileTap={{ scale: 0.92 }}
               onClick={handleSend}
+              disabled={buyerTyping}
               aria-label={p.sendBtn}
-              className="flex h-13 w-13 shrink-0 items-center justify-center rounded-2xl bg-terracotta text-white transition-colors hover:bg-terracotta-dark"
+              className="flex h-13 w-13 shrink-0 items-center justify-center rounded-2xl bg-terracotta text-white transition-colors hover:bg-terracotta-dark disabled:opacity-45"
             >
               <Send size={22} aria-hidden />
             </motion.button>

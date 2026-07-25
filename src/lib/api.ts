@@ -187,6 +187,38 @@ export type PracticeSession = PracticeFeedback & {
   created_at: string;
 };
 
+/** Реплика чата тренажёра. */
+export type ChatTurn = { from: "buyer" | "me"; text: string };
+
+/*
+  Очередная реплика «покупателя».
+
+  Тему реплики выбирает сервер по номеру хода, модель сочиняет только
+  формулировку с учётом объявления и всей переписки. Если модель вышла из роли
+  или не ответила, сервер вернёт message = null, и экран подставит
+  заготовленный вопрос: тренировка не должна ломаться из-за сети.
+*/
+export async function getBuyerReply(input: {
+  marketplace: string;
+  ad: { title: string; category: string; price: string; description: string };
+  extra?: { label: string; value: string }[];
+  chat: ChatTurn[];
+  lang: Lang;
+}): Promise<{ message: string | null; turn: number; done: boolean }> {
+  const { data, error } = await supabase.functions.invoke("generate-card", {
+    body: {
+      action: "practice-reply",
+      marketplace: input.marketplace,
+      ad: input.ad,
+      extra: input.extra ?? [],
+      chat: input.chat,
+      lang: input.lang,
+    },
+  });
+  if (error) throw new Error("buyer reply failed");
+  return data as { message: string | null; turn: number; done: boolean };
+}
+
 /** Оценка диалога тренажёра: один вызов ИИ на всю сессию. */
 export async function getPracticeFeedback(input: {
   marketplace: string;

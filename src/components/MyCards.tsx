@@ -20,7 +20,9 @@ import {
   type CardRow,
 } from "../lib/api";
 import AppHeader from "./AppHeader";
+import HandoffSheet from "./HandoffSheet";
 import { formatForMarketplace, type ExportTarget } from "../lib/exportFormats";
+import { whatsappShareUrl } from "../lib/marketplaceLinks";
 
 /*
   MyCards — сохранённые карточки. Карточка раскрывается по нажатию; внутри —
@@ -44,6 +46,8 @@ export default function MyCards() {
   const [priceInput, setPriceInput] = useState("");
   // Генерация фото по карточке
   const [genState, setGenState] = useState<Record<string, "working" | "done">>({});
+  // Панель «текст скопирован — что делать дальше» после нажатия на площадку
+  const [handoff, setHandoff] = useState<{ target: ExportTarget; text: string } | null>(null);
 
   useEffect(() => {
     listCards()
@@ -82,6 +86,29 @@ export default function MyCards() {
     await navigator.clipboard.writeText(text);
     setCopied(id);
     setTimeout(() => setCopied(null), 2500);
+  }
+
+  /** Текст карточки в формате площадки — один источник для копирования и панели. */
+  function marketText(target: ExportTarget, card: CardRow): string {
+    return formatForMarketplace(
+      target,
+      {
+        title_ru: card.title_ru,
+        title_kz: card.title_kz,
+        description_ru: card.description_ru,
+        description_kz: card.description_kz,
+        tags: card.tags ?? [],
+        price: card.price_recommended || null,
+      },
+      lang
+    );
+  }
+
+  /** Копируем сразу, а панель объясняет, куда идти с этим текстом. */
+  function openHandoff(target: ExportTarget, card: CardRow) {
+    const text = marketText(target, card);
+    copyText(`${target}-${card.id}`, text);
+    setHandoff({ target, text });
   }
 
   async function handleDelete(id: string) {
@@ -275,19 +302,18 @@ export default function MyCards() {
                           {copied === card.id ? r.copied : r.copy}
                         </button>
 
+                        {/* WhatsApp принимает текст прямо в ссылке — здесь
+                            копировать и вставлять вручную не нужно */}
                         {card.social_post && (
-                          <button
-                            type="button"
-                            onClick={() => copyText(`post-${card.id}`, card.social_post)}
+                          <a
+                            href={whatsappShareUrl(card.social_post)}
+                            target="_blank"
+                            rel="noopener noreferrer"
                             className="flex items-center gap-2 rounded-xl bg-beige px-4 py-2.5 text-sm font-semibold transition-colors hover:bg-sun/30"
                           >
-                            {copied === `post-${card.id}` ? (
-                              <Check size={16} className="text-forest" aria-hidden />
-                            ) : (
-                              <MessageCircle size={16} aria-hidden />
-                            )}
+                            <MessageCircle size={16} aria-hidden />
                             {r.postBtn}
-                          </button>
+                          </a>
                         )}
 
                         <button
@@ -311,23 +337,7 @@ export default function MyCards() {
                           <button
                             key={m.id}
                             type="button"
-                            onClick={() =>
-                              copyText(
-                                `${m.id}-${card.id}`,
-                                formatForMarketplace(
-                                  m.id as ExportTarget,
-                                  {
-                                    title_ru: card.title_ru,
-                                    title_kz: card.title_kz,
-                                    description_ru: card.description_ru,
-                                    description_kz: card.description_kz,
-                                    tags: card.tags ?? [],
-                                    price: card.price_recommended || null,
-                                  },
-                                  lang
-                                )
-                              )
-                            }
+                            onClick={() => openHandoff(m.id, card)}
                             className={`flex items-center gap-1.5 rounded-xl px-4 py-2.5 text-sm font-semibold ${m.cls}`}
                           >
                             {copied === `${m.id}-${card.id}` ? (
@@ -356,6 +366,14 @@ export default function MyCards() {
           </ul>
         )}
       </main>
+
+      {handoff && (
+        <HandoffSheet
+          target={handoff.target}
+          onCopyAgain={() => copyText(`${handoff.target}-again`, handoff.text)}
+          onClose={() => setHandoff(null)}
+        />
+      )}
     </>
   );
 }

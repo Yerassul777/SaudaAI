@@ -16,6 +16,8 @@ import {
   type GeneratedCard,
 } from "../lib/api";
 import { formatForMarketplace, type ExportTarget } from "../lib/exportFormats";
+import { whatsappShareUrl } from "../lib/marketplaceLinks";
+import HandoffSheet from "./HandoffSheet";
 
 /*
   CardResult — готовая карточка: тексты на двух языках, цена с объяснением,
@@ -51,6 +53,8 @@ export default function CardResult({
   const [imageState, setImageState] = useState<"idle" | "working" | "done">("idle");
   const [generatedUrl, setGeneratedUrl] = useState<string | null>(null);
   const [generatedPath, setGeneratedPath] = useState<string | null>(null);
+  // Панель «текст скопирован — что делать дальше» после нажатия на площадку
+  const [handoff, setHandoff] = useState<{ target: ExportTarget; text: string } | null>(null);
 
   // Цену можно поправить прямо здесь: если ИИ не смог оценить или продавец
   // передумал — вводит своё число, и карточка сразу берёт его.
@@ -87,24 +91,29 @@ export default function CardResult({
     setTimeout(() => setCopied(null), 2500);
   }
 
-  /** Копия в формате конкретной площадки (форматируется на клиенте) */
-  async function copyForMarketplace(target: ExportTarget) {
-    await navigator.clipboard.writeText(
-      formatForMarketplace(
-        target,
-        {
-          title_ru: card.title_ru,
-          title_kz: card.title_kz,
-          description_ru: card.description_ru,
-          description_kz: card.description_kz,
-          tags: card.tags,
-          price: effectivePrice,
-        },
-        lang
-      )
+  /** Текст в формате площадки (форматируется на клиенте, без вызова ИИ) */
+  function marketText(target: ExportTarget): string {
+    return formatForMarketplace(
+      target,
+      {
+        title_ru: card.title_ru,
+        title_kz: card.title_kz,
+        description_ru: card.description_ru,
+        description_kz: card.description_kz,
+        tags: card.tags,
+        price: effectivePrice,
+      },
+      lang
     );
+  }
+
+  /** Копируем сразу, а панель объясняет, куда идти с этим текстом. */
+  async function openHandoff(target: ExportTarget) {
+    const text = marketText(target);
+    await navigator.clipboard.writeText(text);
     setCopied(target);
     setTimeout(() => setCopied(null), 2500);
+    setHandoff({ target, text });
   }
 
   async function handleSave() {
@@ -298,14 +307,16 @@ export default function CardResult({
           {copied === "card" ? r.copied : r.copy}
         </button>
 
-        <button
-          type="button"
-          onClick={() => copyText("post")}
+        {/* WhatsApp принимает текст прямо в ссылке — вставлять вручную не нужно */}
+        <a
+          href={whatsappShareUrl(card.social_post)}
+          target="_blank"
+          rel="noopener noreferrer"
           className="flex items-center justify-center gap-2 rounded-xl bg-surface px-6 py-3.5 font-semibold shadow-sm transition-colors hover:bg-beige"
         >
-          {copied === "post" ? <Check size={18} className="text-forest" aria-hidden /> : <MessageCircle size={18} aria-hidden />}
-          {copied === "post" ? r.postCopied : r.postBtn}
-        </button>
+          <MessageCircle size={18} aria-hidden />
+          {r.postBtn}
+        </a>
 
         <button
           type="button"
@@ -342,7 +353,7 @@ export default function CardResult({
             key={m.id}
             type="button"
             whileTap={{ scale: 0.95 }}
-            onClick={() => copyForMarketplace(m.id)}
+            onClick={() => openHandoff(m.id)}
             className={`flex items-center gap-2 rounded-xl px-5 py-3 font-semibold shadow-sm ${m.cls}`}
           >
             {copied === m.id ? <Check size={16} aria-hidden /> : <Copy size={16} aria-hidden />}
@@ -358,6 +369,14 @@ export default function CardResult({
       >
         {r.newCard}
       </button>
+
+      {handoff && (
+        <HandoffSheet
+          target={handoff.target}
+          onCopyAgain={() => navigator.clipboard.writeText(handoff.text)}
+          onClose={() => setHandoff(null)}
+        />
+      )}
     </motion.div>
   );
 }

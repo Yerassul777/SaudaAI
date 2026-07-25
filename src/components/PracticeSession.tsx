@@ -15,7 +15,7 @@ import {
 } from "../lib/api";
 import AppHeader from "./AppHeader";
 import MarketForm from "./MarketForm";
-import Waiting from "./Waiting";
+import Brand from "./Brand";
 
 /*
   PracticeSession — тренировка на выбранной площадке, четыре фазы:
@@ -279,7 +279,16 @@ export default function PracticeSession() {
     return (
       <>
         <AppHeader />
-        <Waiting title={p.analyzing} steps={p.analyzingSteps} interval={2600} />
+        <main className="flex min-h-[70vh] flex-col items-center justify-center px-4 text-center">
+          <motion.span
+            animate={{ rotate: 360 }}
+            transition={{ duration: 1.6, repeat: Infinity, ease: "linear" }}
+            className="flex h-16 w-16 items-center justify-center rounded-2xl bg-burgundy text-white"
+          >
+            <Brand size={30} />
+          </motion.span>
+          <h1 className="mt-6 font-heading text-2xl font-extrabold">{p.analyzing}</h1>
+        </main>
       </>
     );
   }

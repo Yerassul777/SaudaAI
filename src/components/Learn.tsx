@@ -1,16 +1,39 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, BookOpen, Check, ChevronRight, X } from "lucide-react";
+import {
+  ArrowLeft, ArrowUpCircle, Barcode, Bell, BookOpen, Camera, Check, ChevronRight,
+  Clock, CreditCard, FileText, Handshake, LayoutGrid, MapPin, MessageCircle,
+  Percent, Send, ShieldCheck, Smartphone, Star, Store, Tag, Truck, Type,
+  UserPlus, Warehouse, X, Zap, type LucideIcon,
+} from "lucide-react";
 import { motion } from "framer-motion";
 import { useLang } from "../context/AppContext";
-import { lessons, type Lesson } from "../data/lessons";
+import { lessons, stepIcons, type IconKey, type Lesson } from "../data/lessons";
 import AppHeader from "./AppHeader";
 
 /*
   Learn — «Научиться продавать»: список уроков → шаги → квиз.
   Всё статическое, ни одного вызова ИИ. Прогресс пройденных квизов
   хранится в localStorage.
+
+  У каждого шага свой рисунок, а над шагами идёт «маршрут»: та же цепочка
+  иконок в строку. Сплошной список текста аудитория читает плохо, а по
+  картинке шаг узнаётся с одного взгляда и видно, сколько всего осталось.
+  Иконки векторные и красятся текущим цветом, поэтому одинаково чёткие
+  и на телефоне, и на проекторе, и в обеих темах.
 */
+
+const ICONS: Record<IconKey, LucideIcon> = {
+  Smartphone, Store, Clock, Camera, Type, Tag, Truck, Bell, Send, LayoutGrid,
+  MessageCircle, ArrowUpCircle, UserPlus, CreditCard, FileText, Warehouse,
+  Barcode, Star, Zap, Handshake, Percent, ShieldCheck, MapPin,
+};
+
+/** Иконки шага урока; если ключа нет, показываем нейтральную. */
+function lessonIcons(lessonId: string, count: number): LucideIcon[] {
+  const keys = stepIcons[lessonId] ?? [];
+  return Array.from({ length: count }, (_, i) => ICONS[keys[i]] ?? BookOpen);
+}
 
 const PASSED_KEY = "sauda-lessons-passed";
 
@@ -231,6 +254,8 @@ export default function Learn() {
   }
 
   /* ===== Шаги урока ===== */
+  const icons = lessonIcons(lesson.id, lesson.steps.length);
+
   return (
     <>
       <AppHeader />
@@ -261,19 +286,43 @@ export default function Learn() {
           </div>
           <p className="mt-3 text-lg leading-relaxed text-ink/70">{lesson.intro}</p>
 
-          <h2 className="mt-8 font-heading text-lg font-bold">{l.stepsTitle}</h2>
+          {/* Маршрут урока: вся дорога от первого шага до последнего одной
+              строкой. На узком экране прокручивается вбок, поля выходят
+              за края контейнера, чтобы полоса не обрывалась visually */}
+          <div className="-mx-4 mt-7 overflow-x-auto px-4 pb-2">
+            <ol className="flex min-w-max items-center" aria-label={l.stepsTitle}>
+              {icons.map((Icon, i) => (
+                <li key={i} className="flex items-center">
+                  <span className="flex h-11 w-11 items-center justify-center rounded-full border-2 border-forest/25 bg-forest/10 text-forest">
+                    <Icon size={19} aria-hidden />
+                  </span>
+                  {i < icons.length - 1 && (
+                    <span className="h-0.5 w-5 shrink-0 bg-forest/25" />
+                  )}
+                </li>
+              ))}
+            </ol>
+          </div>
+
+          <h2 className="mt-6 font-heading text-lg font-bold">{l.stepsTitle}</h2>
           <ol className="mt-4 flex flex-col gap-3">
-            {lesson.steps.map((step, i) => (
-              <li
-                key={i}
-                className="flex items-start gap-4 rounded-2xl bg-surface p-5 shadow-sm"
-              >
-                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-terracotta/10 font-heading font-extrabold text-terracotta">
-                  {i + 1}
-                </span>
-                <p className="leading-relaxed">{step}</p>
-              </li>
-            ))}
+            {lesson.steps.map((step, i) => {
+              const Icon = icons[i];
+              return (
+                <li
+                  key={i}
+                  className="flex items-start gap-4 rounded-2xl bg-surface p-5 shadow-sm"
+                >
+                  <span className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-terracotta/10 text-terracotta">
+                    <Icon size={20} aria-hidden />
+                    <span className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-terracotta font-heading text-[11px] font-extrabold text-white">
+                      {i + 1}
+                    </span>
+                  </span>
+                  <p className="leading-relaxed">{step}</p>
+                </li>
+              );
+            })}
           </ol>
 
           <motion.button

@@ -10,9 +10,16 @@
 */
 import type { ExportTarget } from "./exportFormats";
 
+/*
+  Проверено 25.07.2026. Ведём на страницы, которые открываются без авторизации:
+  /merchantcabinet/ у Kaspi отдаёт редирект, а прямая ссылка на форму OLX без
+  входа отвечает 404 — поэтому у OLX это главная, где кнопка «Подать объявление»
+  видна сразу. Перед демонстрацией стоит открыть все три руками: площадки
+  меняют адреса без предупреждения.
+*/
 export const marketplaceUrls: Record<ExportTarget, string> = {
-  kaspi: "https://kaspi.kz/merchantcabinet/",
-  olx: "https://www.olx.kz/post/",
+  kaspi: "https://kaspi.kz/mc/",
+  olx: "https://www.olx.kz/",
   wildberries: "https://seller.wildberries.ru/",
 };
 

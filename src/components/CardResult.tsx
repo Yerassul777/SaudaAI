@@ -191,13 +191,19 @@ export default function CardResult({
 
       {/* Тексты на двух языках */}
       <div className="mt-6 grid gap-4 lg:grid-cols-2">
+        {/* lang на блоке, а не на странице: казахский заголовок должен рисоваться
+            шрифтом с казахскими буквами и тогда, когда сайт открыт на русском */}
         {(
           [
-            { label: r.ruBlock, title: card.title_ru, text: card.description_ru },
-            { label: r.kzBlock, title: card.title_kz, text: card.description_kz },
+            { lang: "ru", label: r.ruBlock, title: card.title_ru, text: card.description_ru },
+            { lang: "kk", label: r.kzBlock, title: card.title_kz, text: card.description_kz },
           ] as const
         ).map((block) => (
-          <div key={block.label} className="rounded-2xl bg-surface p-6 shadow-sm">
+          <div
+            key={block.label}
+            lang={block.lang}
+            className="rounded-2xl bg-surface p-6 shadow-sm"
+          >
             <p className="text-xs font-bold uppercase tracking-wide text-ink/40">
               {block.label}
             </p>

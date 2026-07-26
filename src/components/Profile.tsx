@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, LayoutGrid, LogOut, Sun, Moon, ChevronRight, Dumbbell } from "lucide-react";
+import { ArrowLeft, LayoutGrid, LogOut, Sun, Moon, ChevronRight, Dumbbell, Wallet } from "lucide-react";
 import { motion } from "framer-motion";
 import { useAuth, useLang, useTheme } from "../context/AppContext";
 import { listPracticeSessions, type PracticeSession } from "../lib/api";
@@ -128,6 +128,26 @@ export default function Profile() {
               <span className="mt-0.5 block text-ink/50">
                 {averageScoreText}
               </span>
+            </span>
+            <ChevronRight size={22} className="shrink-0 text-ink/40" aria-hidden />
+          </motion.button>
+
+          {/* Тарифы — та же строка-навигация. Оплата не подключена, экран
+              показывает бесплатный план и что войдёт в подписку */}
+          <motion.button
+            type="button"
+            whileTap={{ scale: 0.98 }}
+            onClick={() => navigate("/app/plans")}
+            className="mt-4 flex w-full items-center gap-4 rounded-3xl bg-surface p-6 text-left shadow-sm transition-shadow hover:shadow-md"
+          >
+            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-forest/10 text-forest">
+              <Wallet size={24} aria-hidden />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block font-heading text-lg font-bold">
+                {p.plansTitle}
+              </span>
+              <span className="mt-0.5 block text-ink/50">{p.plansPreview}</span>
             </span>
             <ChevronRight size={22} className="shrink-0 text-ink/40" aria-hidden />
           </motion.button>

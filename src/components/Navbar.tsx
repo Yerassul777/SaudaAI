@@ -28,6 +28,7 @@ export default function Navbar({ t, lang, onLangChange, onRegister }: Props) {
     { label: t.nav.howItWorks, href: "#how" },
     { label: t.nav.features, href: "#features" },
     { label: t.nav.audience, href: "#audience" },
+    { label: t.nav.pricing, href: "#pricing" },
     { label: t.nav.faq, href: "#faq" },
   ];
 

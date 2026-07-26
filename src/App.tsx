@@ -18,6 +18,7 @@ import Features from "./components/Features";
 import BeforeAfter from "./components/BeforeAfter";
 import Quote from "./components/Quote";
 import Audience from "./components/Audience";
+import Pricing from "./components/Pricing";
 import FAQ from "./components/FAQ";
 import CTASection from "./components/CTASection";
 import Footer from "./components/Footer";
@@ -30,6 +31,7 @@ import CreateCardWizard from "./components/CreateCardWizard";
 import MyCards from "./components/MyCards";
 import Profile from "./components/Profile";
 import Progress from "./components/Progress";
+import Plans from "./components/Plans";
 import Learn from "./components/Learn";
 import Practice from "./components/Practice";
 import PracticeSession from "./components/PracticeSession";
@@ -70,6 +72,7 @@ function Landing() {
         <BeforeAfter t={t} />
         <Quote t={t} />
         <Audience t={t} />
+        <Pricing t={t} />
         <FAQ t={t} />
         <CTASection t={t} onRegister={goToApp} />
       </main>
@@ -109,6 +112,7 @@ export default function App() {
             <Route path="/app/cards" element={<MyCards />} />
             <Route path="/app/profile" element={<Profile />} />
             <Route path="/app/progress" element={<Progress />} />
+            <Route path="/app/plans" element={<Plans />} />
             <Route path="/app/learn" element={<Learn />} />
             <Route path="/app/practice" element={<Practice />} />
             <Route path="/app/practice/:market" element={<PracticeSession />} />

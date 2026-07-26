@@ -19,7 +19,9 @@ export default function LoginPage() {
   const l = t.login;
   const r = t.register;
 
-  const [phone, setPhone] = useState("");
+  // Код страны подставлен заранее: почти все пользователи из Казахстана.
+  // Поле обычное, номер другой страны можно вписать поверх.
+  const [phone, setPhone] = useState("+7");
   const [pin, setPin] = useState("");
   const [errors, setErrors] = useState({ phone: "", pin: "" });
   const [serverError, setServerError] = useState("");

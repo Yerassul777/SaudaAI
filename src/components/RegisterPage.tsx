@@ -20,7 +20,9 @@ export default function RegisterPage() {
   const r = t.register;
 
   const [name, setName] = useState("");
-  const [phone, setPhone] = useState("");
+  // Код страны подставлен заранее: почти все пользователи из Казахстана.
+  // Поле обычное, номер другой страны можно вписать поверх.
+  const [phone, setPhone] = useState("+7");
   const [pin, setPin] = useState("");
   const [errors, setErrors] = useState({ name: "", phone: "", pin: "" });
   const [serverError, setServerError] = useState("");

@@ -1,7 +1,10 @@
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Camera, BookOpen, Store, ChevronRight } from "lucide-react";
 import { motion } from "framer-motion";
 import { useAuth, useLang } from "../context/AppContext";
+import { countCardsThisMonth } from "../lib/api";
+import { cardsLeft, FREE_CARDS_PER_MONTH, isUnlimited } from "../lib/plan";
 import AppHeader from "./AppHeader";
 import { OrnamentDivider } from "./Ornament";
 
@@ -19,6 +22,33 @@ export default function Dashboard() {
   const navigate = useNavigate();
 
   const name = (user?.user_metadata?.name as string) ?? "";
+  const phone = (user?.user_metadata?.phone as string) ?? "";
+
+  /*
+    Сколько бесплатных карточек осталось. Это только показ: разрешает или
+    запрещает генерацию сервер, см. supabase/functions/generate-card/card.ts.
+    Пока счёт не пришёл, строку не показываем, чтобы не мигала.
+  */
+  const [used, setUsed] = useState<number | null>(null);
+  const unlimited = isUnlimited(phone);
+
+  useEffect(() => {
+    if (unlimited) return;
+    countCardsThisMonth()
+      .then(setUsed)
+      .catch(() => setUsed(null));
+  }, [unlimited]);
+
+  const left = used === null ? null : cardsLeft(used);
+  const planText = unlimited
+    ? t.app.planUnlimited
+    : left === null
+      ? null
+      : left === 0
+        ? t.app.planNone
+        : t.app.planLeft
+            .replace("{left}", String(left))
+            .replace("{limit}", String(FREE_CARDS_PER_MONTH));
 
   const actions = [
     {
@@ -109,6 +139,21 @@ export default function Dashboard() {
             );
           })}
         </div>
+
+        {/* Сколько бесплатных карточек осталось: неброская строка под кнопками */}
+        {planText && (
+          <motion.button
+            type="button"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.4, delay: 0.35 }}
+            onClick={() => navigate("/app/plans")}
+            className="mt-5 flex w-full items-center justify-center gap-1.5 rounded-2xl py-3 font-semibold text-ink/55 transition-colors hover:bg-surface hover:text-ink"
+          >
+            {planText}
+            <ChevronRight size={18} className="shrink-0" aria-hidden />
+          </motion.button>
+        )}
       </main>
     </>
   );

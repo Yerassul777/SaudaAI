@@ -1,12 +1,13 @@
 import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Camera, Mic, Square } from "lucide-react";
+import { ArrowLeft, Camera, Mic, Square, Lock } from "lucide-react";
 import { motion } from "framer-motion";
 import { useAuth, useLang } from "../context/AppContext";
 import {
   uploadPhoto,
   generateCard,
   transcribeAudio,
+  CardLimitError,
   type Answers,
   type GeneratedCard,
 } from "../lib/api";
@@ -14,6 +15,7 @@ import AppHeader from "./AppHeader";
 import Field from "./Field";
 import CardResult from "./CardResult";
 import Brand from "./Brand";
+import { FREE_CARDS_PER_MONTH } from "../lib/plan";
 
 /*
   CreateCardWizard — весь путь создания карточки на одном экране,
@@ -26,7 +28,7 @@ import Brand from "./Brand";
   в свободное поле — его можно поправить руками.
 */
 
-type Stage = "form" | "generating" | "result";
+type Stage = "form" | "generating" | "result" | "limit";
 
 export default function CreateCardWizard() {
   const { t, lang } = useLang();
@@ -156,7 +158,14 @@ export default function CreateCardWizard() {
       setResult({ card, category, answers, photoPath });
       setStage("result");
       window.scrollTo(0, 0);
-    } catch {
+    } catch (err) {
+      // Бесплатные карточки кончились — это не сбой, а понятный ответ,
+      // поэтому показываем отдельный экран, а не красную строку ошибки
+      if (err instanceof CardLimitError) {
+        setStage("limit");
+        window.scrollTo(0, 0);
+        return;
+      }
       setFormError(w.errorGenerate);
       setStage("form");
     }
@@ -190,6 +199,49 @@ export default function CreateCardWizard() {
           </motion.span>
           <h1 className="mt-6 font-heading text-2xl font-extrabold">{w.generating}</h1>
           <p className="mt-2 max-w-sm text-ink/60">{w.generatingHint}</p>
+        </main>
+      </>
+    );
+  }
+
+  /* ===== Бесплатные карточки закончились ===== */
+  if (stage === "limit") {
+    return (
+      <>
+        <AppHeader />
+        <main className="mx-auto max-w-lg px-4 py-12">
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+            className="rounded-3xl bg-surface p-8 text-center shadow-lg"
+          >
+            <span className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-sun/25 text-terracotta">
+              <Lock size={30} aria-hidden />
+            </span>
+            <h1 className="mt-5 font-heading text-2xl font-extrabold">
+              {w.limitTitle}
+            </h1>
+            <p className="mt-3 text-lg leading-relaxed text-ink/70">
+              {w.limitText.replace("{limit}", String(FREE_CARDS_PER_MONTH))}
+            </p>
+
+            <motion.button
+              type="button"
+              whileTap={{ scale: 0.97 }}
+              onClick={() => navigate("/app/plans")}
+              className="mt-7 w-full rounded-2xl bg-terracotta px-6 py-4 text-lg font-bold text-white shadow-lg transition-colors hover:bg-terracotta-dark"
+            >
+              {w.limitBtn}
+            </motion.button>
+            <button
+              type="button"
+              onClick={() => navigate("/app")}
+              className="mt-2 w-full rounded-2xl px-6 py-3.5 font-semibold text-ink/60 transition-colors hover:bg-beige hover:text-ink"
+            >
+              {w.limitBack}
+            </button>
+          </motion.div>
         </main>
       </>
     );

@@ -17,8 +17,10 @@ import { chatJSON, getModel, getVisionModel } from "./openai.ts";
 import { cardPrompt, VISION_PROMPT } from "./prompts.ts";
 import {
   CATEGORIES,
+  FREE_CARDS_PER_MONTH,
   guessCategoryFromText,
   jsonResponse,
+  UNLIMITED_EMAILS,
   type Lang,
   type Payload,
 } from "./shared.ts";
@@ -29,6 +31,26 @@ import {
   лучше честно попросить цену у продавца, чем выдать 2,5 млн ₸ за фото машины.
 */
 const OTHER_CEILING = 150000;
+
+/** Сохранённые карточки пользователя с начала текущего календарного месяца. */
+async function cardsThisMonth(
+  admin: SupabaseClient,
+  userId: string
+): Promise<number> {
+  const now = new Date();
+  const monthStart = new Date(
+    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1)
+  ).toISOString();
+
+  const { count, error } = await admin
+    .from("cards")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", userId)
+    .gte("created_at", monthStart);
+
+  if (error) throw new Error(`count cards: ${error.message}`);
+  return count ?? 0;
+}
 
 export async function handleCard(
   admin: SupabaseClient,
@@ -41,6 +63,24 @@ export async function handleCard(
   // Пользователь может работать только со своей папкой
   if (!payload.photo_path.startsWith(`${user.id}/`)) {
     return jsonResponse({ code: "forbidden" }, 403);
+  }
+
+  /*
+    Лимит бесплатного плана. Проверяем ДО первого обращения к OpenAI: за
+    отклонённую попытку платить незачем.
+
+    Отдаём статус 200 с полем code, а не 4xx: supabase-js оборачивает неуспешный
+    ответ в FunctionsHttpError и тело приходится доставать из context, что легко
+    ломается. Здесь это не ошибка транспорта, а обычный ответ «нельзя».
+  */
+  if (!UNLIMITED_EMAILS.includes(user.email ?? "")) {
+    const used = await cardsThisMonth(admin, user.id);
+    if (used >= FREE_CARDS_PER_MONTH) {
+      return jsonResponse(
+        { code: "limit_reached", used, limit: FREE_CARDS_PER_MONTH },
+        200
+      );
+    }
   }
 
   const model = await getModel(admin);

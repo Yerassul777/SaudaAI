@@ -4,6 +4,7 @@
   чтение и запись карточек в таблицу cards.
 */
 import { supabase } from "./supabase";
+import { monthStartISO } from "./plan";
 import type { Lang } from "../content";
 
 /* ===== Типы ===== */
@@ -71,6 +72,22 @@ export async function getPhotoUrl(
 
 /* ===== ИИ-функция generate-card ===== */
 
+/*
+  Бесплатные карточки на месяц закончились. Отдельная ошибка, а не общая:
+  экран мастера показывает по ней понятный текст вместо «что-то пошло не так».
+*/
+export class CardLimitError extends Error {
+  used: number;
+  limit: number;
+
+  constructor(used: number, limit: number) {
+    super("card limit reached");
+    this.name = "CardLimitError";
+    this.used = used;
+    this.limit = limit;
+  }
+}
+
 export async function generateCard(
   photoPath: string,
   answers: Answers,
@@ -80,7 +97,25 @@ export async function generateCard(
     body: { action: "card", photo_path: photoPath, answers, lang },
   });
   if (error) throw new Error("generate failed");
+  // Отказ по лимиту приходит обычным ответом с полем code, см. комментарий
+  // в supabase/functions/generate-card/card.ts
+  if (data?.code === "limit_reached") {
+    throw new CardLimitError(Number(data.used) || 0, Number(data.limit) || 0);
+  }
   return { card: data.card as GeneratedCard, category: data.category as string };
+}
+
+/**
+ * Сколько карточек человек сохранил с начала месяца.
+ * RLS отдаёт только свои строки, поэтому фильтр по пользователю не нужен.
+ */
+export async function countCardsThisMonth(): Promise<number> {
+  const { count, error } = await supabase
+    .from("cards")
+    .select("id", { count: "exact", head: true })
+    .gte("created_at", monthStartISO());
+  if (error) throw new Error(error.message);
+  return count ?? 0;
 }
 
 export async function transcribeAudio(
